@@ -2,7 +2,7 @@ package com.example.pro.controller;
 
 import com.example.pro.entity.Patient;
 import com.example.pro.service.ProPatientService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,7 +19,7 @@ public class ProPatientController {
     @Autowired
     private ProPatientService proPatientService;
 
-    @ApiOperation(value = "Get patients")
+    @Operation(description = "Get patients")
     @GetMapping
     public List<Patient> getPatients() {
         return proPatientService.findAll();
