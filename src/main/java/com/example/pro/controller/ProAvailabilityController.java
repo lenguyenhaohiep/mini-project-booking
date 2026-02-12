@@ -2,7 +2,7 @@ package com.example.pro.controller;
 
 import com.example.pro.entity.Availability;
 import com.example.pro.service.ProAvailabilityService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ public class ProAvailabilityController {
     @Autowired
     private ProAvailabilityService proAvailabilityService;
 
-    @ApiOperation(value = "Get availabilities by practitionerId")
+    @Operation(description = "Get availabilities by practitionerId")
     @GetMapping
     public List<Availability> getAvailabilities(@RequestParam final Integer practitionerId) {
         return proAvailabilityService.findByPractitionerId(practitionerId);
