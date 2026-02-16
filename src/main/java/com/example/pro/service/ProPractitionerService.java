@@ -2,18 +2,19 @@ package com.example.pro.service;
 
 import com.example.pro.entity.Practitioner;
 import com.example.pro.repository.PractitionerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProPractitionerService {
-    @Autowired
-    private PractitionerRepository practitionerRepository;
+    private final PractitionerRepository practitionerRepository;
 
-    public Practitioner find(String practitionerId) {
-        return practitionerRepository.findById(practitionerId).orElseThrow();
+    public Optional<Practitioner> find(int practitionerId) {
+        return practitionerRepository.findById(practitionerId);
     }
 
     public List<Practitioner> findAll() {
