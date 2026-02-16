@@ -7,9 +7,8 @@ import com.example.pro.repository.PatientRepository;
 import com.example.pro.repository.PractitionerRepository;
 import com.example.pro.repository.TimeSlotRepository;
 import com.example.pro.service.ProAvailabilityService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,19 +18,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
+@Slf4j
+@RequiredArgsConstructor
 public class CommandLineStartupRunner implements CommandLineRunner {
-
-    private final Logger log = LoggerFactory.getLogger(CommandLineStartupRunner.class);
-
-    @Autowired
-    private PatientRepository patientRepository;
-    @Autowired
-    private PractitionerRepository practitionerRepository;
-    @Autowired
-    private TimeSlotRepository timeSlotRepository;
-
-    @Autowired
-    private ProAvailabilityService proAvailabilityService;
+    private final PatientRepository patientRepository;
+    private final PractitionerRepository practitionerRepository;
+    private final TimeSlotRepository timeSlotRepository;
+    private final ProAvailabilityService proAvailabilityService;
 
     @Override
     public void run(String... args) {

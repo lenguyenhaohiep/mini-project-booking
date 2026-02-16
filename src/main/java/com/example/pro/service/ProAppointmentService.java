@@ -35,7 +35,7 @@ public class ProAppointmentService {
      * @param appointmentId the appointment ID
      * @return the appointment optional
      */
-    public Optional<Appointment> find(int appointmentId) {
+    public Optional<Appointment> find(long appointmentId) {
         return appointmentRepository.findById(appointmentId);
     }
 

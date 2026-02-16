@@ -27,7 +27,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
         LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
         timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(4, availabilities.size());
 
@@ -51,7 +51,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
         availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plusMinutes(35)).endDate(startDate.plusMinutes(45)).build());
         availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plusMinutes(45)).endDate(startDate.plusHours(1)).build());
 
-        proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         List<Availability> availabilities = proAvailabilityService.findByPractitionerId(practitioner.getId());
         assertEquals(4, availabilities.size());
@@ -67,7 +67,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(30),
                 startDate.plusMinutes(45)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
@@ -94,7 +94,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(30),
                 startDate.plusMinutes(45)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(2, availabilities.size());
 
@@ -115,7 +115,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(15),
                 startDate.plusMinutes(35)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertTrue(availabilities.size() >= 2);
     }
@@ -130,7 +130,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(20),
                 startDate.plusMinutes(35)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertTrue(availabilities.size() >= 2);
     }
@@ -145,7 +145,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(15),
                 startDate.plusMinutes(35)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
@@ -167,7 +167,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate.plusMinutes(20),
                 startDate.plusMinutes(35)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
@@ -182,7 +182,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void givenNoSlot_whenGenerateAvailabilities_thenReturnEmptyList() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).isEmpty();
     }
@@ -199,7 +199,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             startDate,
             startDate.plusMinutes(15)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
         assertThat(availabilities).isEmpty();
     }
 
@@ -220,7 +220,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             startDate.plusHours(2),
             startDate.plusHours(3)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(7)
             .extracting(Availability::getStartDate)
@@ -251,7 +251,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             startDate.plusHours(1).plusMinutes(1),
             startDate.plusHours(2).plusMinutes(1)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities)
             .hasSize(6)
@@ -283,7 +283,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             startDate.plusMinutes(60),
             startDate.plusMinutes(75)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(2)
             .extracting(Availability::getStartDate)
@@ -309,7 +309,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             startDate.plusMinutes(60),
             startDate.plusMinutes(75)));
 
-        List<Availability> availabilities = proAvailabilityService.splitSingleTimeRangesIntoAvailabilities(practitioner.getId());
+        List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities)
             .hasSize(2)

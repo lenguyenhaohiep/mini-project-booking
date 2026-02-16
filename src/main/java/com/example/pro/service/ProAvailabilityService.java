@@ -55,7 +55,7 @@ public class ProAvailabilityService {
      * @param practitionerId the practitioner's ID
      * @return list of availability slots within the time range
      */
-    private List<Availability> splitSingleTimeRangesIntoAvailabilities(TimeRange timeRange, Integer practitionerId) {
+    private List<Availability> splitSingleTimeRangeIntoAvailabilities(TimeRange timeRange, Integer practitionerId) {
         List<Availability> availabilities = new ArrayList<>();
         LocalDateTime start = timeRange.startDate();
         while (!start.plusMinutes(APPOINTMENT_DURATION_MINUTES).isAfter(timeRange.endDate())) {
@@ -70,15 +70,15 @@ public class ProAvailabilityService {
 
     /**
      * Generates availability slots for all given free time ranges by delegating
-     * to {@link #splitSingleTimeRangesIntoAvailabilities(TimeRange, Integer)} for each range.
+     * to {@link #splitSingleTimeRangeIntoAvailabilities(TimeRange, Integer)} for each range.
      *
      * @param timeRanges     the free time ranges to split into slots
      * @param practitionerId the practitioner's ID
      * @return flat list of availability slots across all time ranges
      */
-    private List<Availability> splitSingleTimeRangesIntoAvailabilities(List<TimeRange> timeRanges, Integer practitionerId) {
+    private List<Availability> generateAvailabilities(List<TimeRange> timeRanges, Integer practitionerId) {
         return timeRanges.stream()
-            .map(timeRange -> splitSingleTimeRangesIntoAvailabilities(timeRange, practitionerId))
+            .map(timeRange -> splitSingleTimeRangeIntoAvailabilities(timeRange, practitionerId))
             .flatMap(List::stream).toList();
     }
 
@@ -92,7 +92,7 @@ public class ProAvailabilityService {
      * @return list of newly created availability slots
      */
     @Transactional
-    public List<Availability> splitSingleTimeRangesIntoAvailabilities(int practitionerId) {
+    public List<Availability> generateAvailabilities(int practitionerId) {
         log.info("Availabilities generation starts for practitioner {}", practitionerId);
 
         List<TimeSlot> timeslots = timeSlotRepository.findByPractitionerIdAndStatusIn(practitionerId,
@@ -107,7 +107,7 @@ public class ProAvailabilityService {
         List<TimeRange> extendedSlots = extendTimeSlots(mergedTimeSlots);
         List<TimeRange> occupiedRanges = getOccupiedTimeRanges(practitionerId, range);
         List<TimeRange> freeRanges = subtractOverlapRanges(extendedSlots, occupiedRanges);
-        List<Availability> availabilities = splitSingleTimeRangesIntoAvailabilities(freeRanges, practitionerId);
+        List<Availability> availabilities = generateAvailabilities(freeRanges, practitionerId);
 
         availabilityRepository.saveAll(availabilities);
         timeslots.forEach(TimeSlot::markAsPlanned);

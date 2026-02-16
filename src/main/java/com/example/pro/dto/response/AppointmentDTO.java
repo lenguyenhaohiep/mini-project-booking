@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * @param endDate        the appointment end date and time
  */
 public record AppointmentDTO(
-    Integer id,
+    Long id,
     Integer patientId,
     Integer practitionerId,
     LocalDateTime startDate,

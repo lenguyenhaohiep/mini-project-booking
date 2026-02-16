@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @param endDate        the availability slot end date and time
  */
 public record AvailabilityDTO(
-    Integer id,
+    Long id,
     Integer practitionerId,
     LocalDateTime startDate,
     LocalDateTime endDate

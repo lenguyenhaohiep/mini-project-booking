@@ -4,7 +4,6 @@ import com.example.pro.entity.Availability;
 import com.example.pro.model.AvailabilityStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AvailabilityRepository extends CrudRepository<Availability, Integer> {
+public interface AvailabilityRepository extends CrudRepository<Availability, Long> {
     List<Availability> findByPractitionerId(int id);
     List<Availability> findByPractitionerIdAndStartDateBetween(int id, LocalDateTime start, LocalDateTime end);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
