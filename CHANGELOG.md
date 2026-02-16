@@ -14,8 +14,9 @@
 - Generate appointments with duration of 15 mins from free ranges.
 #### Create appointments
 - Validate request (time range, partitioner, patient).
+- Ensure that availability is valid.
 - Ensure that no overlapping appointments for the given time range.
-- Change status of availability to UNAVAILABLE.
+- Change the status of availability to UNAVAILABLE.
 - Create appointment with status BOOKED.
       
 ### Layer separation and models

@@ -104,11 +104,12 @@ public class ProAppointmentService {
     @Transactional
     public Appointment createAppointment(AppointmentRequest request) {
         validateParticipants(request.practitionerId(), request.patientId());
-        ensureNoOverlapAppointments(request);
 
         var availability = availabilityRepository.findForUpdate(
             request.practitionerId(), request.startDate(), request.endDate(), AvailabilityStatus.FREE
         ).orElseThrow(() -> new AvailabilityNotFound("Availability not found"));
+
+        ensureNoOverlapAppointments(request);
 
         availability.markAsBooked();
         availabilityRepository.save(availability);

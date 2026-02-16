@@ -93,8 +93,10 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
     }
 
     @Test
-    void givenDuplicateAppointment_whenCreateAppointment_thenThrowsAppointmentAlreadyExisted() {
+    void givenDuplicateAppointmentWithOtherPractitioner_whenCreateAppointment_thenThrowsAppointmentAlreadyExisted() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Practitioner practitioner2 = practitionerRepository.save(entityFactory.createPractitioner());
+
         Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
         availabilityRepository.save(
             Availability.builder()
@@ -103,6 +105,14 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
                 .endDate(startDate.plus(Duration.ofMinutes(15)))
                 .build()
         );
+        availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner2.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
 
         // create first appointment
         var first = new AppointmentRequest(patient.getId(), practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
@@ -110,7 +120,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
 
         // attempt duplicate
         var duplicate = new AppointmentRequest(patient.getId(),
-            practitioner.getId(),
+            practitioner2.getId(),
             startDate,
             startDate.plus(Duration.ofMinutes(15)));
 
