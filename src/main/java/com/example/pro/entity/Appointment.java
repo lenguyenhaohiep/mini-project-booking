@@ -1,9 +1,8 @@
 package com.example.pro.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.pro.model.AppointmentStatus;
+import com.example.pro.model.TimeRange;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,12 +15,31 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "appointment")
 public class Appointment {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
+
+    @Column(name = "patient_id")
     private Integer patientId;
+
+    @Column(name = "practitioner_id")
     private Integer practitionerId;
+
+    @Column(name = "start_date")
     private LocalDateTime startDate;
+
+    @Column(name = "end_date")
     private LocalDateTime endDate;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AppointmentStatus status = AppointmentStatus.BOOKED;
+
+    public TimeRange getTimeRange() {
+        return new TimeRange(startDate, endDate);
+    }
+
 }

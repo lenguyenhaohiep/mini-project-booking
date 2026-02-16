@@ -1,9 +1,8 @@
 package com.example.pro.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.pro.model.TimeRange;
+import com.example.pro.model.TimeSlotStatus;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,11 +15,31 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "time_slot")
 public class TimeSlot {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
+
+    @Column(name = "practitioner_id")
     private Integer practitionerId;
+
+    @Column(name = "start_date")
     private LocalDateTime startDate;
+
+    @Column(name = "end_date")
     private LocalDateTime endDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    @Builder.Default
+    private TimeSlotStatus status = TimeSlotStatus.NEW;
+
+    public void markAsPlanned() {
+        setStatus(TimeSlotStatus.PLANNED);
+    }
+
+    public TimeRange getTimeRange() {
+        return new TimeRange(startDate, endDate);
+    }
 }
