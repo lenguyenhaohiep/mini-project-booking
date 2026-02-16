@@ -53,8 +53,8 @@ Thread B: create appointment (2,Y)
     - TimeSlot (NEW. MODIFIED, PLANNED) - MODIFIED for future support
     - Availability (FREE, UNAVAILABLE)
     - Appointment (BOOKED, CANCELLED) - CANCELLED for future support
-    - `Instant` is used instead of `LocalDateTime`, so dates will be in UTC.
-- Add a new model package for business logic, it’s better to have different models (for business) and entities (for db persistence), but. For this project scope, entities are still used to handle business logic.
+    - `Instant` is used instead of `LocalDateTime`, so dates will be in UTC. So, **now the UI will display date as the local date GMT+1**.
+- Add a new `model` package for business logic, it’s better to have different models (for business) and entities (for db persistence), but. For this project scope, entities are still used to handle business logic.
 
 ### API
 - New endpoint is added to create appointments `POST /appointments` ProAppointmentController. 
