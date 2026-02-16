@@ -1,5 +1,6 @@
 package com.example.pro;
 
+import com.example.pro.entity.Availability;
 import com.github.javafaker.Faker;
 import com.example.pro.entity.Appointment;
 import com.example.pro.entity.Practitioner;
@@ -33,5 +34,13 @@ public class EntityFactory {
                 .startDate(start)
                 .endDate(end)
                 .build();
+    }
+
+    public Availability createAvailability(Integer practitionerId, LocalDateTime start, LocalDateTime end) {
+        return Availability.builder()
+            .practitionerId(practitionerId)
+            .startDate(start)
+            .endDate(end)
+            .build();
     }
 }

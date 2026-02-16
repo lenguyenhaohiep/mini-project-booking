@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface AppointmentRepository extends CrudRepository<Appointment, Integer> {
+public interface AppointmentRepository extends CrudRepository<Appointment, Long> {
     List<Appointment> findAll();
 
     List<Appointment> findByPractitionerId(int practitionerId);

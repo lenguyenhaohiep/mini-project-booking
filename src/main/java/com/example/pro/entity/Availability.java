@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class Availability {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Long id;
 
     @Column(name = "practitioner_id")
     private Integer practitionerId;
