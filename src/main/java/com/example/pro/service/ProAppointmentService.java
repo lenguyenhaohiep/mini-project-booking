@@ -118,7 +118,6 @@ public class ProAppointmentService {
             .patientId(request.patientId())
             .startDate(request.startDate())
             .endDate(request.endDate())
-            .status(AppointmentStatus.BOOKED)
             .build();
         var bookedAppointment = appointmentRepository.save(appointment);
 

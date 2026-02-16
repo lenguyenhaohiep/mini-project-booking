@@ -4,6 +4,7 @@ import com.example.pro.entity.Appointment;
 import com.example.pro.entity.Availability;
 import com.example.pro.entity.TimeSlot;
 import com.example.pro.model.AppointmentStatus;
+import com.example.pro.model.AvailabilityStatus;
 import com.example.pro.model.TimeRange;
 import com.example.pro.repository.AppointmentRepository;
 import com.example.pro.repository.AvailabilityRepository;
@@ -35,7 +36,7 @@ public class ProAvailabilityService {
     private final TimeSlotRepository timeSlotRepository;
 
     private static final Duration APPOINTMENT_DURATION = Duration.ofMinutes(15);
-    private static final Duration APPOINTMENT_DURATION_EXTENDED = Duration.ofMinutes(14);
+    private static final Duration MAX_SLOT_EXTENSION = Duration.ofMinutes(14);
 
     /**
      * Retrieves all existing availabilities for a given practitioner.
@@ -45,6 +46,16 @@ public class ProAvailabilityService {
      */
     public List<Availability> findByPractitionerId(int practitionerId) {
         return availabilityRepository.findByPractitionerId(practitionerId);
+    }
+
+    /**
+     * Retrieves only free (bookable) availabilities for a given practitioner.
+     *
+     * @param practitionerId the practitioner's ID
+     * @return list of free availabilities for the practitioner
+     */
+    public List<Availability> findFreeAvailabilitiesByPractitionerId(int practitionerId) {
+        return availabilityRepository.findByPractitionerIdAndStatus(practitionerId, AvailabilityStatus.FREE);
     }
 
     /**
@@ -156,7 +167,7 @@ public class ProAvailabilityService {
         for (int i = 0; i < timeslots.size(); i++) {
             var current = timeslots.get(i);
             var nextSlot = (i + 1) < timeslots.size() ? timeslots.get(i + 1) : null;
-            var extendedMinutes = APPOINTMENT_DURATION_EXTENDED.toMinutes();
+            var extendedMinutes = MAX_SLOT_EXTENSION.toMinutes();
             if (nextSlot != null) {
                 extendedMinutes = Math.min(
                     extendedMinutes,

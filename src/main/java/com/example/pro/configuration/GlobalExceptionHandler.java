@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     );
 
     @ExceptionHandler(DomainException.class)
-    ResponseEntity<ErrorMessageDTO> handleDomainException(DomainException exception) {
+    public ResponseEntity<ErrorMessageDTO> handleDomainException(DomainException exception) {
         var httpStatus = EXCEPTION_TO_HTTP_STATUS.getOrDefault(exception.getClass(), HttpStatus.BAD_REQUEST);
         return buildResponse(exception.getClass().getSimpleName(), exception.getMessage(), httpStatus);
     }
@@ -43,12 +43,12 @@ public class GlobalExceptionHandler {
         MissingRequestHeaderException.class,
         MissingServletRequestParameterException.class
     })
-    ResponseEntity<ErrorMessageDTO> handleValidationException(Exception exception) {
+    public ResponseEntity<ErrorMessageDTO> handleValidationException(Exception exception) {
         return buildResponse(exception.getClass().getSimpleName(), exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
-    ResponseEntity<ErrorMessageDTO> handleOthers(Exception exception) {
+    public ResponseEntity<ErrorMessageDTO> handleOthers(Exception exception) {
         return buildResponse(exception.getClass().getSimpleName(), "Internal Server Error, please contact admin", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

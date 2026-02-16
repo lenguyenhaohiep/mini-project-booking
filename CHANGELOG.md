@@ -23,12 +23,25 @@
     - TimeSlot (NEW. MODIFIED, PLANNED) - MODIFIED for future support
     - Availability (FREE, UNAVAILABLE)
     - Appointment (BOOKED, CANCELLED) - CANCELLED for future support
+    - `Instant` is used instead of `LocalDateTime`, so dates will be in UTC.
 - Add a new model package for business logic, it’s better to have different models (for business) and entities (for db persistence), but. For this project scope, entities are still used to handle business logic.
 
 ### API
 - New endpoint is added to create appointments `POST /appointments` ProAppointmentController. 
   - Currently, It allows creating appointment given start and end date without checking if start is in the past for demo purposes.
-  - If the patient already has the overlap appointment with another practitioner, appointment will not be made. Note: currently, UI didn't handle this case, if you book the same slot for the same patient with a different practitioner, error displayed `An unexpected error has occurred.` in UI and need to refresh the page, and by doing so, appointment list will not displayed correctly. it's UI issue. 
+  - If the patient already has the overlap appointment with another practitioner, appointment will not be made. Note: currently, UI didn't handle this case, if you book the same slot for the same patient with a different practitioner, error displayed `An unexpected error has occurred.` in UI and need to refresh the page, and by doing so, appointment list will not displayed correctly. it's UI issue.
+
+```
+POST /appointments
+{
+    "patientId": "2",
+    "practitionerId": "4",
+    "startDate":"2021-02-10T09:30:00Z",
+    "endDate": "2021-02-10T09:45:00Z"
+}
+```
+dates should be in UTC format `YYYY-MM-DDTHH:mm:ssZ`
+
 - Http code 202, 201, 400, 409, 500 supports
 - DTO for API to isolate business logic and API transfer.
 - Global exception handler to handle all exceptions and consistent error message. Error code is exception class for demo purpose only.
@@ -37,9 +50,10 @@
 - Use bean constructor injection instead of `@Autowired`
 - Unit test method name `given_when_then` for better semantic understanding
 - Newer versions updated (gradle, spring boot, java)
+- To avoid lots of changes when reviewing, some classes are not changed, eg. (class `ProAvailabilityServiceTest`, name of provided tests remains unchanged).
 
 ### Limit
-- Not test covers all classes, only class related to the two main workflows are done.
+- Tests do not cover all classes, only class related to the two main workflows are done.
 - Appointment cancelled, timeslot modified are not handled.
 
 ### Assumptions

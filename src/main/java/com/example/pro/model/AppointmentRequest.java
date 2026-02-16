@@ -6,11 +6,11 @@ import java.time.Instant;
 
 /**
  * Immutable request for creating an appointment.
- * The compact constructor validates that IDs are non-negative, dates are non-null,
+ * The compact constructor validates that IDs are positive, dates are non-null,
  * and {@code startDate} is strictly before {@code endDate}.
  *
- * @param patientId      the patient's ID (must be >= 0)
- * @param practitionerId the practitioner's ID (must be >= 0)
+ * @param patientId      the patient's ID (must be >= 1)
+ * @param practitionerId the practitioner's ID (must be >= 1)
  * @param startDate      the inclusive start of the appointment
  * @param endDate        the exclusive end of the appointment
  */

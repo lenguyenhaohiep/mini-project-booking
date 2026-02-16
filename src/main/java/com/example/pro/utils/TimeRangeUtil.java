@@ -17,7 +17,7 @@ public final class TimeRangeUtil {
      *
      * @param dateTime1 first date-time
      * @param dateTime2 second date-time
-     * @return the later of {@code a} and {@code b}, or {@code a} if equal
+     * @return the later of {@code dateTime1} and {@code dateTime2}
      */
     private static Instant max(Instant dateTime1, Instant dateTime2) {
         return dateTime1.isAfter(dateTime2) ? dateTime1 : dateTime2;

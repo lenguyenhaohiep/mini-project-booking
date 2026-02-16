@@ -2,7 +2,6 @@ package com.example.pro.controller;
 
 import com.example.pro.dto.mapper.AvailabilityMapper;
 import com.example.pro.dto.response.AvailabilityDTO;
-import com.example.pro.model.AvailabilityStatus;
 import com.example.pro.service.ProAvailabilityService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Positive;
@@ -24,8 +23,7 @@ public class ProAvailabilityController {
     @Operation(description = "Get availabilities by practitionerId")
     @GetMapping
     public List<AvailabilityDTO> getAvailabilities(@Positive @RequestParam final Integer practitionerId) {
-        return proAvailabilityService.findByPractitionerId(practitionerId)
-            .stream().filter(availability -> AvailabilityStatus.FREE == availability.getStatus())
-            .map(AvailabilityMapper.INSTANCE::toDTO).toList();
+        return proAvailabilityService.findFreeAvailabilitiesByPractitionerId(practitionerId)
+            .stream().map(AvailabilityMapper.INSTANCE::toDTO).toList();
     }
 }

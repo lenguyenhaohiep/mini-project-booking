@@ -3,6 +3,7 @@ package com.example.pro.service;
 import com.example.pro.EntityFactory;
 import com.example.pro.entity.Availability;
 import com.example.pro.entity.Practitioner;
+import com.example.pro.model.AvailabilityStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -318,5 +319,38 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
                 startDate,                                  // 11:00
                 startDate.plus(Duration.ofMinutes(35))     // 11:35
             );
+    }
+
+    @Test
+    void givenAvailabilitiesUnavailableAndFree_whenFindFreeAvailabilitiesByPractitionerId_thenReturnOnlyAvailable() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Instant start = Instant.parse("2026-02-05T11:00:00Z");
+
+        Availability free1 = availabilityRepository.save(Availability.builder()
+            .practitionerId(practitioner.getId())
+            .startDate(start)
+            .endDate(start.plus(Duration.ofMinutes(15)))
+            .build());
+
+        Availability free2 = availabilityRepository.save(Availability.builder()
+            .practitionerId(practitioner.getId())
+            .startDate(start.plus(Duration.ofMinutes(15)))
+            .endDate(start.plus(Duration.ofMinutes(30)))
+            .build());
+
+        Availability unavailable = availabilityRepository.save(Availability.builder()
+            .practitionerId(practitioner.getId())
+            .startDate(start.plus(Duration.ofMinutes(30)))
+            .endDate(start.plus(Duration.ofMinutes(45)))
+            .build());
+        unavailable.markAsBooked();
+        availabilityRepository.save(unavailable);
+
+        List<Availability> result = proAvailabilityService.findFreeAvailabilitiesByPractitionerId(practitioner.getId());
+
+        assertThat(result)
+            .extracting(Availability::getStatus)
+            .containsOnly(AvailabilityStatus.FREE);
+        assertThat(result).hasSize(2);
     }
 }
