@@ -1,10 +1,10 @@
 package com.example.pro.service;
 
 import com.example.pro.entity.Appointment;
-import com.example.pro.exception.AppointmentOverlapExisted;
-import com.example.pro.exception.AvailabilityNotFound;
-import com.example.pro.exception.PatientNotFound;
-import com.example.pro.exception.PractitionerNotFound;
+import com.example.pro.exception.AppointmentOverlapExistedException;
+import com.example.pro.exception.AvailabilityNotFoundException;
+import com.example.pro.exception.PatientNotFoundException;
+import com.example.pro.exception.PractitionerNotFoundException;
 import com.example.pro.model.AppointmentRequest;
 import com.example.pro.model.AppointmentStatus;
 import com.example.pro.model.AvailabilityStatus;
@@ -63,17 +63,17 @@ public class ProAppointmentService {
      *
      * @param practitionerId the practitioner's ID
      * @param patientId      the patient's ID
-     * @throws PractitionerNotFound if the practitioner does not exist
-     * @throws PatientNotFound      if the patient does not exist
+     * @throws PractitionerNotFoundException if the practitioner does not exist
+     * @throws PatientNotFoundException      if the patient does not exist
      */
     private void validateParticipants(int practitionerId, int patientId) {
         if (!practitionerRepository.existsById(practitionerId)) {
-            throw new PractitionerNotFound("Practitioner %s not found".formatted(practitionerId));
+            throw new PractitionerNotFoundException("Practitioner %s not found".formatted(practitionerId));
         }
 
         // Lock to avoid 2 appointments in the same range and patient but different practitioner
         patientRepository.findForUpdateById(patientId).orElseThrow(
-            () -> new PatientNotFound("Patient %s not found".formatted(patientId)));
+            () -> new PatientNotFoundException("Patient %s not found".formatted(patientId)));
     }
 
     /**
@@ -81,13 +81,13 @@ public class ProAppointmentService {
      * within the requested time range.
      *
      * @param request the appointment request containing patient ID and date range
-     * @throws AppointmentOverlapExisted if an overlapping appointment is found
+     * @throws AppointmentOverlapExistedException if an overlapping appointment is found
      */
     private void ensureNoOverlapAppointments(AppointmentRequest request) {
         var overlapping = appointmentRepository.findOverlappingAppointments(
             request.patientId(), request.startDate(), request.endDate(), AppointmentStatus.BOOKED
         );
-        if (!overlapping.isEmpty()) throw new AppointmentOverlapExisted("Other appointment conflicts with time range");
+        if (!overlapping.isEmpty()) throw new AppointmentOverlapExistedException("Other appointment conflicts with time range");
     }
 
     /**
@@ -97,10 +97,10 @@ public class ProAppointmentService {
      *
      * @param request the appointment request
      * @return the persisted appointment
-     * @throws PractitionerNotFound      if the practitioner does not exist
-     * @throws PatientNotFound           if the patient does not exist
-     * @throws AppointmentOverlapExisted if an overlapping appointment exists
-     * @throws AvailabilityNotFound      if no matching free availability slot is found
+     * @throws PractitionerNotFoundException      if the practitioner does not exist
+     * @throws PatientNotFoundException           if the patient does not exist
+     * @throws AppointmentOverlapExistedException if an overlapping appointment exists
+     * @throws AvailabilityNotFoundException      if no matching free availability slot is found
      */
     @Transactional
     public Appointment createAppointment(AppointmentRequest request) {
@@ -109,11 +109,11 @@ public class ProAppointmentService {
         // Lock to avoid 2 appointments in the same range and practitioner
         var availability = availabilityRepository.findForUpdate(
             request.practitionerId(), request.startDate(), request.endDate(), AvailabilityStatus.FREE
-        ).orElseThrow(() -> new AvailabilityNotFound("Availability not found"));
+        ).orElseThrow(() -> new AvailabilityNotFoundException("Availability not found"));
 
         ensureNoOverlapAppointments(request);
 
-        availability.markAsBooked();
+        availability.markAsUnavailable();
         availabilityRepository.save(availability);
 
         var appointment = Appointment.builder()

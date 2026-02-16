@@ -91,6 +91,22 @@ class ProAppointmentControllerTest {
     }
 
     @Test
+    void givenInvalidRange_whenCreateAppointment_thenReturns400() throws Exception {
+        String json = """
+            {
+                "practitionerId": 1,
+                "startDate": "2021-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
+            }
+            """;
+
+        mockMvc.perform(post("/appointments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void givenNullPractitionerId_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {

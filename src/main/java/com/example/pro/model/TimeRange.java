@@ -1,6 +1,6 @@
 package com.example.pro.model;
 
-import com.example.pro.exception.TimeRangeInvalid;
+import com.example.pro.exception.TimeRangeInvalidException;
 
 import java.time.Instant;
 
@@ -20,18 +20,14 @@ public record TimeRange(
      * Validates that both dates are non-null and that start is before end.
      *
      * @throws IllegalArgumentException if either date is null
-     * @throws TimeRangeInvalid          if {@code startDate} is not before {@code endDate}
+     * @throws TimeRangeInvalidException          if {@code startDate} is not before {@code endDate}
      */
     public TimeRange {
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Dates cannot be null");
         }
         if (!startDate.isBefore(endDate)) {
-            throw new TimeRangeInvalid("startDate must be before endDate");
+            throw new TimeRangeInvalidException("startDate must be before endDate");
         }
-    }
-
-    public boolean isOverlap(TimeRange timeRange) {
-        return this.startDate.isBefore(timeRange.endDate) && timeRange.startDate.isBefore(this.endDate);
     }
 }

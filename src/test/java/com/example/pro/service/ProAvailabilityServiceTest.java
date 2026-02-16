@@ -336,14 +336,16 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             .practitionerId(practitioner.getId())
             .startDate(start.plus(Duration.ofMinutes(15)))
             .endDate(start.plus(Duration.ofMinutes(30)))
+            .status(AvailabilityStatus.FREE)
             .build());
 
         Availability unavailable = availabilityRepository.save(Availability.builder()
             .practitionerId(practitioner.getId())
             .startDate(start.plus(Duration.ofMinutes(30)))
             .endDate(start.plus(Duration.ofMinutes(45)))
+            .status(AvailabilityStatus.UNAVAILABLE)
             .build());
-        unavailable.markAsBooked();
+
         availabilityRepository.save(unavailable);
 
         List<Availability> result = proAvailabilityService.findFreeAvailabilitiesByPractitionerId(practitioner.getId());

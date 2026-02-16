@@ -4,7 +4,7 @@
 #### Generate availabilities
 ![generation_flow.png](assets/generation_flow.png)
 1. Get unplanned time slots.
-2. Sort and merge overlap time slots.
+2. Sort and merge overlapping time slots.
 3. Extend slots to maximal duration - minutes (14 in this test) as availability could end after the slot end, if no overlapping with the next slot, appointments or availabilities (business logic confirmed before implementation).
 4. Get appointments that are in slots’ range.
 5. Get planned availabilities that are in slots’ range.
@@ -14,52 +14,54 @@
 9. Generate appointments with duration of 15 mins from free ranges.
 
 #### Create appointments
-- All steps are in one transaction, with locks to avoid race conditions: (different patients, same availability) and (same patient, different availabilities with the overlap time ranges).
-  - Patient is locked
-  - Availability is locked
-1. Validate request (time range, partitioner, patient (LOCK)).
+![create_flow.png](assets/create_flow.png)
+- All steps are in one transaction with locks (patient, availability) to avoid race conditions: (different patients, same availability) and (same patient, different availabilities with overlapping time ranges) as follows:
+1. Validate request
+   - practitioner
+   - patient (LOCK).
 2. Ensure that availability (LOCK) is valid.
 3. Ensure that no overlapping appointments for the given time range.
 4. Change the status of availability to UNAVAILABLE.
 5. Create appointment with status BOOKED. 
-
 ##### Concurrency handling example
 
 ```
 Two threads, different patients, same availability:
 Thread A: lock Patient 1, lock Availability X
 Thread B: lock Patient 2, lock Availability X (waits for A)
-Thread A: create appointment (1,X)
-Thread B: availability exception -> rollback -> exit
+Thread A: create appointment (1,X), X is UNAVAILABLE, release all locks
+Thread B: availability exception as X is UNAVAILABLE-> rollback -> exit
 => only 1 appointment is created
 
-Two threads, same patient, different availabilities:
+Two threads, same patient, different availabilities but overlapping:
 Thread A: lock Patient 1, lock Availability X
 Thread B: lock Patient 1  (waits for A)
-Thread A: create appointment (1, X)
-Thread B: overlap exception -> rollback -> exit
+Thread A: create appointment (1, X), X is UNAVAILABLE, release all locks
+Thread B: overlap exception as found appointment(1,X) that overlaps -> rollback -> exit
 => only 1 appointment is created
   
 Two threads, different patients, different availabilities:
-Thread A: lock Patient 1, lock Availability X
-Thread B: lock Patient 2, lock Availability Y
-Thread A: create appointment (1,X)
-Thread B: create appointment (2,Y)
+Thread A: lock Patient 1, lock Availability X, no wait
+Thread B: lock Patient 2, lock Availability Y, no wait
+Thread A: create appointment (1,X), X is UNAVAILABLE, release all locks
+Thread B: create appointment (2,Y), Y is UNAVAILABLE, release all locks
 => 2 appointments are created.
 ```
       
-### Layer separation and models
-- Update entities to support status life cycle
-    - TimeSlot (NEW. MODIFIED, PLANNED) - MODIFIED for future support
+### Models and Entities
+- Update entities to support status
+    - TimeSlot (NEW, MODIFIED, PLANNED) - MODIFIED for future support
     - Availability (FREE, UNAVAILABLE)
     - Appointment (BOOKED, CANCELLED) - CANCELLED for future support
-    - `Instant` is used instead of `LocalDateTime`, so dates will be in UTC. So, **now the UI will display date as the local date GMT+1**.
-- Add a new `model` package for business logic, it’s better to have different models (for business) and entities (for db persistence), but. For this project scope, entities are still used to handle business logic.
+    - State pattern could be used to handle state change, for the project scope, it's not taken into account.
+- `Instant` is used instead of `LocalDateTime`, so dates will be in UTC. So, **now the UI will display date as the local date GMT+1**.
+- Add a new `model` package for business logic, it's better to have different models (for business) and entities (for db persistence), but for this project scope, entities are still used to handle business logic.
+- For this scope, services are kept, but it's better to define interfaces for services and controllers depend on the abstraction rather than concrete services.
 
 ### API
 - New endpoint is added to create appointments `POST /appointments` ProAppointmentController. 
-  - Currently, It allows creating appointment given start and end date without checking if start is in the past for demo purposes.
-  - If the patient already has the overlap appointment with another practitioner, appointment will not be made. Note: currently, UI didn't handle this case, if you book the same slot for the same patient with a different practitioner, error displayed `An unexpected error has occurred.` in UI and need to refresh the page, and by doing so, appointment list will not displayed correctly. it's UI issue.
+  - Currently, it allows creating appointment given start and end date without checking if start is in the past for demo purposes.
+  - If the patient already has an overlapping appointment with another practitioner, appointment will not be made. Note: currently, UI doesn't handle this case, if you book the same slot for the same patient with a different practitioner, error displayed `An unexpected error has occurred.` in UI and need to refresh the page, and by doing so, appointment list will not be displayed correctly. It's a UI issue.
 
 ```
 POST /appointments
@@ -72,7 +74,7 @@ POST /appointments
 ```
 dates should be in UTC format `YYYY-MM-DDTHH:mm:ssZ`
 
-- Http code 202, 201, 400, 409, 500 supports
+- Http code 202, 201, 400, 409, 500 supported
 - DTO for API to isolate business logic and API transfer.
 - Global exception handler to handle all exceptions and consistent error message. Error code is exception class for demo purpose only.
 
@@ -83,14 +85,18 @@ dates should be in UTC format `YYYY-MM-DDTHH:mm:ssZ`
 - To avoid lots of changes when reviewing, some classes are not changed, eg. (class `ProAvailabilityServiceTest`, name of provided tests remains unchanged).
 
 ### Limit
-- Tests do not cover all classes, only class related to the two main workflows are done.
-- Appointment cancelled, timeslot modified are not handled.
+- Tests do not cover all classes, only classes related to the two main workflows are done.
+  - ProAppointmentController
+  - TimeRange
+  - ProAppointmentService
+  - ProAvailabilityService
+- Appointment cancellation and timeslot modification are not handled.
 
 ### Assumptions
 - The flows might not reflect the actual business logic
 - Assumptions with implemented workflows
-  - Free time ranges ìf the duration is not enough. eg. The Slot starts at 11.am, there is an availability at 11:25 added by practitioner, one availability 11:00-11:15 is generated and a gap from 11:15-11:25.
-  - Patients could book appointment if non overlapping with other appointments.
+  - Free time ranges if the duration is not enough. eg. The Slot starts at 11 AM, there is an availability at 11:25 added by practitioner, one availability 11:00-11:15 is generated and a gap from 11:15-11:25.
+  - Patients could book an appointment if not overlapping with other appointments.
   - Patients could book more than one appointment with the same practitioner.
 
 
@@ -132,7 +138,7 @@ Try it out with Swagger UI (http://localhost:8080/swagger-ui/index.html)
 ### H2 Console UI
 
 H2 in memory db console could be accessed by http://localhost:8080/h2-console
-Provide this connection details.
+Provide these connection details.
 
 ```
 Driver Class:	org.h2.Driver
@@ -143,7 +149,7 @@ Password:	password
 
 ### Testing
 
-To run unit test
+To run unit tests
 
 ```
 ./gradlew test
@@ -160,7 +166,7 @@ To run unit test
 ### Entity
 - Better id with `uuid` (if db sharding).
 - Some technical fields such as `created_at`, `modified_at`, `created_by`, `modified_by` for better audit.
-- Currently, entities and business models are identical, but for the bigger project scope with potential evolutions, it’s better to use separated business models for business logic, and MapStruct to convert to and from entities. It’s useful when entities could have more technical fields (eg. version).
+- Currently, entities and business models are identical, but for the bigger project scope with potential evolutions, it's better to use separate business models for business logic, and MapStruct to convert to and from entities. It’s useful when entities could have more technical fields (eg. version).
 
 ### Feature
 - Non-booked availabilities cleanup: scheduled job to delete or to mark past unbooked availabilities.
@@ -168,10 +174,10 @@ To run unit test
 ### Architecture
 - Support async processing if high concurrency
     - Async api to accept the booking request.
-    - Publish a message for handle asynchronously to a broker (kafka, rabitmq…).
+    - Publish a message for handling asynchronously to a broker (kafka, rabbitmq…).
     - A consumer to handle the request and persist into db.
-    - An new api for status checking, and front-end could use polling strategy to get the status.
-- Using clean/hexagonal architecture to isolate business domain, get more flexibility if infrastructure swap, eg from H2 to mongodb; core domain business will not be affected.
+    - A new api for status checking, and front-end could use polling strategy to get the status.
+- Using clean/hexagonal architecture to isolate business domain, get more flexibility if infrastructure swap, e.g. from H2 to mongodb; core domain business will not be affected.
 - The application is heavy read, could adopt the pattern CQRS.
 
 ### Testing

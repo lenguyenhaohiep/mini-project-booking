@@ -5,10 +5,10 @@ import com.example.pro.entity.Appointment;
 import com.example.pro.entity.Availability;
 import com.example.pro.entity.Patient;
 import com.example.pro.entity.Practitioner;
-import com.example.pro.exception.AppointmentOverlapExisted;
-import com.example.pro.exception.AvailabilityNotFound;
-import com.example.pro.exception.PatientNotFound;
-import com.example.pro.exception.PractitionerNotFound;
+import com.example.pro.exception.AppointmentOverlapExistedException;
+import com.example.pro.exception.AvailabilityNotFoundException;
+import com.example.pro.exception.PatientNotFoundException;
+import com.example.pro.exception.PractitionerNotFoundException;
 import com.example.pro.model.AppointmentRequest;
 import com.example.pro.model.AvailabilityStatus;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         var request = new AppointmentRequest(1, 999999, startDate, startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
-            .isInstanceOf(PractitionerNotFound.class);
+            .isInstanceOf(PractitionerNotFoundException.class);
     }
 
     @Test
@@ -90,7 +90,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         var request = new AppointmentRequest(999999, practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
-            .isInstanceOf(PatientNotFound.class);
+            .isInstanceOf(PatientNotFoundException.class);
     }
 
     @Test
@@ -126,7 +126,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(duplicate))
-            .isInstanceOf(AppointmentOverlapExisted.class);
+            .isInstanceOf(AppointmentOverlapExistedException.class);
     }
 
     @Test
@@ -140,7 +140,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
-            .isInstanceOf(AvailabilityNotFound.class);
+            .isInstanceOf(AvailabilityNotFoundException.class);
     }
 
     @Test
@@ -213,7 +213,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         vt2.join();
 
         assertThat(appointmentRepository.findByPractitionerId(practitioner.getId())).hasSize(1);
-        assertThat(caughtException.get()).isNotNull().isInstanceOf(AvailabilityNotFound.class);
+        assertThat(caughtException.get()).isNotNull().isInstanceOf(AvailabilityNotFoundException.class);
         assertThat(availabilityRepository.findById(availability.getId()))
             .isPresent().get().extracting(Availability::getStatus).isEqualTo(AvailabilityStatus.UNAVAILABLE);
     }
@@ -266,7 +266,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         vt1.join();
         vt2.join();
 
-        assertThat(caughtException.get()).isNotNull().isInstanceOf(AppointmentOverlapExisted.class);
+        assertThat(caughtException.get()).isNotNull().isInstanceOf(AppointmentOverlapExistedException.class);
         assertThat(appointmentRepository.findByPatientId(patient.getId())).hasSize(1);
     }
 

@@ -1,6 +1,6 @@
 package com.example.pro.model;
 
-import com.example.pro.exception.TimeRangeInvalid;
+import com.example.pro.exception.TimeRangeInvalidException;
 
 import java.time.Instant;
 
@@ -24,7 +24,7 @@ public record AppointmentRequest(
      * Validates request fields.
      *
      * @throws IllegalArgumentException if an ID is negative or a date is null
-     * @throws TimeRangeInvalid          if {@code startDate} is not before {@code endDate}
+     * @throws TimeRangeInvalidException          if {@code startDate} is not before {@code endDate}
      */
     public AppointmentRequest {
         if (practitionerId < 1) {
@@ -37,7 +37,7 @@ public record AppointmentRequest(
             throw new IllegalArgumentException("Dates cannot be null");
         }
         if (!startDate.isBefore(endDate)) {
-            throw new TimeRangeInvalid("startDate must be before endDate");
+            throw new TimeRangeInvalidException("startDate must be before endDate");
         }
     }
 }

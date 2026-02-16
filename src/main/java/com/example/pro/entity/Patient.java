@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Data
@@ -27,4 +29,15 @@ public class Patient {
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
+
+    @PrePersist
+    @PreUpdate
+    private void validate() {
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("firstName must not be null or blank");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("lastName must not be null or blank");
+        }
+    }
 }

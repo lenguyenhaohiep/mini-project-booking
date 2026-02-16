@@ -42,4 +42,17 @@ public class Appointment {
         return new TimeRange(startDate, endDate);
     }
 
+    @PrePersist
+    @PreUpdate
+    private void validate() {
+        if (patientId == null || patientId < 1) {
+            throw new IllegalArgumentException("patientId must be positive");
+        }
+        if (practitionerId == null || practitionerId < 1) {
+            throw new IllegalArgumentException("practitionerId must be positive");
+        }
+        if (startDate == null || endDate == null || !startDate.isBefore(endDate)) {
+            throw new IllegalArgumentException("startDate must be before endDate");
+        }
+    }
 }

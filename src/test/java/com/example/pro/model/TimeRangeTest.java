@@ -1,6 +1,6 @@
 package com.example.pro.model;
 
-import com.example.pro.exception.TimeRangeInvalid;
+import com.example.pro.exception.TimeRangeInvalidException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -29,8 +29,8 @@ class TimeRangeTest {
         return Stream.of(
             Arguments.of(null, T11, IllegalArgumentException.class),
             Arguments.of(T10, null, IllegalArgumentException.class),
-            Arguments.of(T11, T10, TimeRangeInvalid.class),
-            Arguments.of(T10, T10, TimeRangeInvalid.class)
+            Arguments.of(T11, T10, TimeRangeInvalidException.class),
+            Arguments.of(T10, T10, TimeRangeInvalidException.class)
         );
     }
 

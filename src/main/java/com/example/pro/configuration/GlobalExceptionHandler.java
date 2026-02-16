@@ -1,12 +1,7 @@
 package com.example.pro.configuration;
 
 import com.example.pro.dto.response.ErrorMessageDTO;
-import com.example.pro.exception.AppointmentOverlapExisted;
-import com.example.pro.exception.AvailabilityNotFound;
-import com.example.pro.exception.DomainException;
-import com.example.pro.exception.TimeRangeInvalid;
-import com.example.pro.exception.PatientNotFound;
-import com.example.pro.exception.PractitionerNotFound;
+import com.example.pro.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,11 +18,12 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Map<Class<? extends Exception>, HttpStatus> EXCEPTION_TO_HTTP_STATUS = Map.ofEntries(
-        Map.entry(PatientNotFound.class, HttpStatus.BAD_REQUEST),
-        Map.entry(PractitionerNotFound.class, HttpStatus.BAD_REQUEST),
-        Map.entry(AvailabilityNotFound.class, HttpStatus.BAD_REQUEST),
-        Map.entry(TimeRangeInvalid.class, HttpStatus.BAD_REQUEST),
-        Map.entry(AppointmentOverlapExisted.class, HttpStatus.CONFLICT)
+        Map.entry(PatientNotFoundException.class, HttpStatus.BAD_REQUEST),
+        Map.entry(PractitionerNotFoundException.class, HttpStatus.BAD_REQUEST),
+        Map.entry(AvailabilityNotFoundException.class, HttpStatus.BAD_REQUEST),
+        Map.entry(TimeRangeInvalidException.class, HttpStatus.BAD_REQUEST),
+        Map.entry(AppointmentOverlapExistedException.class, HttpStatus.CONFLICT),
+        Map.entry(InvalidStateChangeException.class, HttpStatus.INTERNAL_SERVER_ERROR)
     );
 
     @ExceptionHandler(DomainException.class)
