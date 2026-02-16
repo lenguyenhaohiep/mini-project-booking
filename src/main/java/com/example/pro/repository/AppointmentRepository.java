@@ -5,7 +5,7 @@ import com.example.pro.model.AppointmentStatus;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -14,16 +14,16 @@ public interface AppointmentRepository extends CrudRepository<Appointment, Long>
 
     List<Appointment> findByPractitionerId(int practitionerId);
 
-    List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(int practitionerId, LocalDateTime start,
-                                                                       LocalDateTime end,
+    List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(int practitionerId, Instant start,
+                                                                       Instant end,
                                                                        AppointmentStatus status);
 
     List<Appointment> findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(int patientId,
-                                                                                        LocalDateTime date1,
-                                                                                        LocalDateTime date2,
+                                                                                        Instant date1,
+                                                                                        Instant date2,
                                                                                         AppointmentStatus status);
 
-    default List<Appointment> findOverlappingAppointments(int patientId, LocalDateTime start, LocalDateTime end,
+    default List<Appointment> findOverlappingAppointments(int patientId, Instant start, Instant end,
                                                   AppointmentStatus status) {
         return findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(
             patientId, start, end, status

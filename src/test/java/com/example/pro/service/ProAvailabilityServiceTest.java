@@ -6,8 +6,8 @@ import com.example.pro.entity.Practitioner;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,32 +24,32 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void generateAvailabilities() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(4, availabilities.size());
 
-        List<LocalDateTime> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
-        ArrayList<LocalDateTime> expectedStartDate = new ArrayList<>();
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
-        expectedStartDate.add(startDate.plusMinutes(15));
-        expectedStartDate.add(startDate.plusMinutes(30));
-        expectedStartDate.add(startDate.plusMinutes(45));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(30)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(45)));
         assertTrue(availabilitiesStartDate.containsAll(expectedStartDate));
     }
 
     @Test
     void checkAvailabilitiesAreNotDuplicated() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
 
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate).endDate(startDate.plusMinutes(15)).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plusMinutes(15)).endDate(startDate.plusMinutes(30)).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plusMinutes(35)).endDate(startDate.plusMinutes(45)).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plusMinutes(45)).endDate(startDate.plusHours(1)).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate).endDate(startDate.plus(Duration.ofMinutes(15))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(15))).endDate(startDate.plus(Duration.ofMinutes(30))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(35))).endDate(startDate.plus(Duration.ofMinutes(45))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(45))).endDate(startDate.plus(Duration.ofHours(1))).build());
 
         proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -60,60 +60,60 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void generateAvailabilityWithOneAppointment() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(30),
-                startDate.plusMinutes(45)));
+                startDate.plus(Duration.ofMinutes(30)),
+                startDate.plus(Duration.ofMinutes(45))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
-        List<LocalDateTime> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
-        ArrayList<LocalDateTime> expectedStartDate = new ArrayList<>();
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
-        expectedStartDate.add(startDate.plusMinutes(15));
-        expectedStartDate.add(startDate.plusMinutes(45));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(45)));
         assertTrue(availabilitiesStartDate.containsAll(expectedStartDate));
     }
 
     @Test
     void generateAvailabilityWithExistingAppointments() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
                 startDate,
-                startDate.plusMinutes(15)));
+                startDate.plus(Duration.ofMinutes(15))));
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(30),
-                startDate.plusMinutes(45)));
+                startDate.plus(Duration.ofMinutes(30)),
+                startDate.plus(Duration.ofMinutes(45))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(2, availabilities.size());
 
-        List<LocalDateTime> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
-        ArrayList<LocalDateTime> expectedStartDate = new ArrayList<>();
-        expectedStartDate.add(startDate.plusMinutes(15));
-        expectedStartDate.add(startDate.plusMinutes(45));
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        ArrayList<Instant> expectedStartDate = new ArrayList<>();
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(45)));
         assertTrue(availabilitiesStartDate.containsAll(expectedStartDate));
     }
 
     @Test
     void generateAvailabilitiesWithExistingTwentyMinutesAppointment() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(15),
-                startDate.plusMinutes(35)));
+                startDate.plus(Duration.ofMinutes(15)),
+                startDate.plus(Duration.ofMinutes(35))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -123,12 +123,12 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void generateAvailabilitiesWithAppointmentOnTwoAvailabilities() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(20),
-                startDate.plusMinutes(35)));
+                startDate.plus(Duration.ofMinutes(20)),
+                startDate.plus(Duration.ofMinutes(35))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -138,44 +138,44 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void generateOptimalAvailabilitiesWithExistingTwentyMinutesAppointment() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(15),
-                startDate.plusMinutes(35)));
+                startDate.plus(Duration.ofMinutes(15)),
+                startDate.plus(Duration.ofMinutes(35))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
-        List<LocalDateTime> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
-        ArrayList<LocalDateTime> expectedStartDate = new ArrayList<>();
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
-        expectedStartDate.add(startDate.plusMinutes(35));
-        expectedStartDate.add(startDate.plusMinutes(50));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(35)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(50)));
         assertTrue(availabilitiesStartDate.containsAll(expectedStartDate));
     }
 
     @Test
     void generateOptimalAvailabilitiesWithAppointmentOnTwoAvailabilities() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
                 patient_id,
-                startDate.plusMinutes(20),
-                startDate.plusMinutes(35)));
+                startDate.plus(Duration.ofMinutes(20)),
+                startDate.plus(Duration.ofMinutes(35))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertEquals(3, availabilities.size());
 
-        List<LocalDateTime> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
-        ArrayList<LocalDateTime> expectedStartDate = new ArrayList<>();
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
-        expectedStartDate.add(startDate.plusMinutes(35));
-        expectedStartDate.add(startDate.plusMinutes(50));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(35)));
+        expectedStartDate.add(startDate.plus(Duration.ofMinutes(50)));
         assertTrue(availabilitiesStartDate.containsAll(expectedStartDate));
     }
 
@@ -190,14 +190,14 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void givenSlotThatAlreadyGenerated_whenGenerateAvailabilities_thenReturnEmptyList() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2026, Month.FEBRUARY, 5, 11, 0, 0);
+        Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
             startDate,
-            startDate.plusMinutes(15)));
+            startDate.plus(Duration.ofMinutes(15))));
         timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(),
             startDate,
-            startDate.plusMinutes(15)));
+            startDate.plus(Duration.ofMinutes(15))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
         assertThat(availabilities).isEmpty();
@@ -206,50 +206,50 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
     @Test
     void givenThatAvailabilityCouldExceedSlotEndDateAndNoOverlapWithNextSlot_whenGenerateAvailabilities_thenCreated() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2026, Month.FEBRUARY, 5, 11, 0, 0);
+        Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
-            startDate.plusMinutes(20),
-            startDate.plusMinutes(35)));
+            startDate.plus(Duration.ofMinutes(20)),
+            startDate.plus(Duration.ofMinutes(35))));
 
         // 11:00 - 12:00
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         // 13:00 - 14:00
         timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(),
-            startDate.plusHours(2),
-            startDate.plusHours(3)));
+            startDate.plus(Duration.ofHours(2)),
+            startDate.plus(Duration.ofHours(3))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(7)
             .extracting(Availability::getStartDate)
             .containsExactly(
-                startDate,                                      // 11:00
-                startDate.plusMinutes(35),                      // 11:35
-                startDate.plusMinutes(50),                      // 11:50
-                startDate.plusHours(2),                         // 13:00
-                startDate.plusHours(2).plusMinutes(15),         // 13:15
-                startDate.plusHours(2).plusMinutes(30),         // 13:30
-                startDate.plusHours(2).plusMinutes(45)          // 13:45
+                startDate,                                                          // 11:00
+                startDate.plus(Duration.ofMinutes(35)),                            // 11:35
+                startDate.plus(Duration.ofMinutes(50)),                            // 11:50
+                startDate.plus(Duration.ofHours(2)),                               // 13:00
+                startDate.plus(Duration.ofHours(2)).plus(Duration.ofMinutes(15)),  // 13:15
+                startDate.plus(Duration.ofHours(2)).plus(Duration.ofMinutes(30)),  // 13:30
+                startDate.plus(Duration.ofHours(2)).plus(Duration.ofMinutes(45))   // 13:45
             );
     }
 
     @Test
     void givenThatAvailabilityCouldExceedSlotEndDateAndOverlapWithNextSlot_whenGenerateAvailabilities_thenCreated() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2026, Month.FEBRUARY, 5, 11, 0, 0);
+        Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
-            startDate.plusMinutes(20),
-            startDate.plusMinutes(35)));
+            startDate.plus(Duration.ofMinutes(20)),
+            startDate.plus(Duration.ofMinutes(35))));
         // 11:00 - 12:00
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
         // 12:01 - 13:01
         timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(),
-            startDate.plusHours(1).plusMinutes(1),
-            startDate.plusHours(2).plusMinutes(1)));
+            startDate.plus(Duration.ofMinutes(61)),
+            startDate.plus(Duration.ofMinutes(121))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -257,57 +257,57 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             .hasSize(6)
             .extracting(Availability::getStartDate)
             .containsExactly(
-                startDate,                                                  // 11:00
-                startDate.plusMinutes(35),                                  // 11:35
-                startDate.plusHours(1).plusMinutes(1),                      // 12:01
-                startDate.plusHours(1).plusMinutes(16),                     // 12:16
-                startDate.plusHours(1).plusMinutes(31),                     // 12:31
-                startDate.plusHours(1).plusMinutes(46)                      // 12:46
+                startDate,                                      // 11:00
+                startDate.plus(Duration.ofMinutes(35)),        // 11:35
+                startDate.plus(Duration.ofMinutes(61)),        // 12:01
+                startDate.plus(Duration.ofMinutes(76)),        // 12:16
+                startDate.plus(Duration.ofMinutes(91)),        // 12:31
+                startDate.plus(Duration.ofMinutes(106))        // 12:46
             );
     }
 
     @Test
     void givenThatAvailabilityCouldExceedSlotEndDateAndOverlapWithExistingAppointment_whenGenerateAvailabilities_thenCreated() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2026, Month.FEBRUARY, 5, 11, 0, 0);
+        Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
-            startDate.plusMinutes(20),
-            startDate.plusMinutes(35)));
+            startDate.plus(Duration.ofMinutes(20)),
+            startDate.plus(Duration.ofMinutes(35))));
         // 11:00 - 12:00
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
-            startDate.plusMinutes(60),
-            startDate.plusMinutes(75)));
+            startDate.plus(Duration.ofMinutes(60)),
+            startDate.plus(Duration.ofMinutes(75))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(2)
             .extracting(Availability::getStartDate)
             .containsExactly(
-                startDate,                  // 11:00
-                startDate.plusMinutes(35)   // 11:35
+                startDate,                                  // 11:00
+                startDate.plus(Duration.ofMinutes(35))     // 11:35
             );
     }
 
     @Test
     void givenThatAvailabilityCouldExceedSlotEndDateAndOverlapWithExistingAvailability_whenGenerateAvailabilities_thenCreated() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
-        LocalDateTime startDate = LocalDateTime.of(2026, Month.FEBRUARY, 5, 11, 0, 0);
+        Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
 
         appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
             patient_id,
-            startDate.plusMinutes(20),
-            startDate.plusMinutes(35)));
+            startDate.plus(Duration.ofMinutes(20)),
+            startDate.plus(Duration.ofMinutes(35))));
         // 11:00 - 12:00
-        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plusHours(1)));
+        timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
 
         availabilityRepository.save(entityFactory.createAvailability(practitioner.getId(),
-            startDate.plusMinutes(60),
-            startDate.plusMinutes(75)));
+            startDate.plus(Duration.ofMinutes(60)),
+            startDate.plus(Duration.ofMinutes(75))));
 
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -315,8 +315,8 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
             .hasSize(2)
             .extracting(Availability::getStartDate)
             .containsExactly(
-                startDate,                  // 11:00
-                startDate.plusMinutes(35)   // 11:35
+                startDate,                                  // 11:00
+                startDate.plus(Duration.ofMinutes(35))     // 11:35
             );
     }
 }

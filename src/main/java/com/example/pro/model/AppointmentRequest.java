@@ -2,7 +2,7 @@ package com.example.pro.model;
 
 import com.example.pro.exception.TimeRangeInvalid;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Immutable request for creating an appointment.
@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public record AppointmentRequest(
     int patientId,
     int practitionerId,
-    LocalDateTime startDate,
-    LocalDateTime endDate
+    Instant startDate,
+    Instant endDate
 ) {
     /**
      * Validates request fields.

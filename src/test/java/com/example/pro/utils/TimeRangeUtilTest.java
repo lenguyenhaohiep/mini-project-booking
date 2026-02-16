@@ -3,7 +3,7 @@ package com.example.pro.utils;
 import com.example.pro.model.TimeRange;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,13 +11,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TimeRangeUtilTest {
 
-    private static final LocalDateTime T10 = LocalDateTime.of(2026, 1, 1, 10, 0);
-    private static final LocalDateTime T11 = LocalDateTime.of(2026, 1, 1, 11, 0);
-    private static final LocalDateTime T12 = LocalDateTime.of(2026, 1, 1, 12, 0);
-    private static final LocalDateTime T13 = LocalDateTime.of(2026, 1, 1, 13, 0);
-    private static final LocalDateTime T14 = LocalDateTime.of(2026, 1, 1, 14, 0);
-    private static final LocalDateTime T15 = LocalDateTime.of(2026, 1, 1, 15, 0);
-    private static final LocalDateTime T16 = LocalDateTime.of(2026, 1, 1, 16, 0);
+    private static final Instant T10 = Instant.parse("2026-01-01T10:00:00Z");
+    private static final Instant T11 = Instant.parse("2026-01-01T11:00:00Z");
+    private static final Instant T12 = Instant.parse("2026-01-01T12:00:00Z");
+    private static final Instant T13 = Instant.parse("2026-01-01T13:00:00Z");
+    private static final Instant T14 = Instant.parse("2026-01-01T14:00:00Z");
+    private static final Instant T15 = Instant.parse("2026-01-01T15:00:00Z");
+    private static final Instant T16 = Instant.parse("2026-01-01T16:00:00Z");
 
     // test empty input
     @Test

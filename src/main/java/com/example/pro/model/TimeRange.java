@@ -2,7 +2,7 @@ package com.example.pro.model;
 
 import com.example.pro.exception.TimeRangeInvalid;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Immutable time range defined by a start and end date-time.
@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
  * @param endDate   the exclusive end of the time range
  */
 public record TimeRange(
-    LocalDateTime startDate,
-    LocalDateTime endDate
+    Instant startDate,
+    Instant endDate
 ) {
     /**
      * Validates that both dates are non-null and that start is before end.

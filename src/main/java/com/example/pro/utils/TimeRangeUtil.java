@@ -2,7 +2,7 @@ package com.example.pro.utils;
 
 import com.example.pro.model.TimeRange;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,13 +13,13 @@ public final class TimeRangeUtil {
     }
 
     /**
-     * Returns the later of two {@link LocalDateTime} values.
+     * Returns the later of two {@link Instant} values.
      *
      * @param dateTime1 first date-time
      * @param dateTime2 second date-time
      * @return the later of {@code a} and {@code b}, or {@code a} if equal
      */
-    private static LocalDateTime max(LocalDateTime dateTime1, LocalDateTime dateTime2) {
+    private static Instant max(Instant dateTime1, Instant dateTime2) {
         return dateTime1.isAfter(dateTime2) ? dateTime1 : dateTime2;
     }
 
@@ -74,8 +74,8 @@ public final class TimeRangeUtil {
         int j = 0;
 
         for (TimeRange current : baseRanges) {
-            LocalDateTime start = current.startDate();
-            LocalDateTime end = current.endDate();
+            Instant start = current.startDate();
+            Instant end = current.endDate();
 
             // skip time range end before current
             while (j < toSubtract.size() && toSubtract.get(j).endDate().isBefore(start)) {

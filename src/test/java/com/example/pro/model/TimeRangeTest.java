@@ -6,7 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TimeRangeTest {
 
-    private static final LocalDateTime T10 = LocalDateTime.of(2026, 1, 1, 10, 0);
-    private static final LocalDateTime T11 = LocalDateTime.of(2026, 1, 1, 11, 0);
+    private static final Instant T10 = Instant.parse("2026-01-01T10:00:00Z");
+    private static final Instant T11 = Instant.parse("2026-01-01T11:00:00Z");
 
     @Test
     void givenValidDates_whenCreateTimeRange_thenCreated() {
@@ -37,8 +37,8 @@ class TimeRangeTest {
     @ParameterizedTest
     @MethodSource("invalidDatesProvider")
     void givenInvalidDates_whenCreateTimeRange_thenThrows(
-        LocalDateTime startDate,
-        LocalDateTime endDate,
+        Instant startDate,
+        Instant endDate,
         Class<Exception> expectedException) {
         assertThatThrownBy(() -> new TimeRange(startDate, endDate))
             .isInstanceOf(expectedException);

@@ -15,8 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProAppointmentControllerTest {
 
     private final EntityFactory entityFactory = new EntityFactory();
-    private final LocalDateTime startDate = LocalDateTime.of(2020, Month.FEBRUARY, 5, 11, 0, 0);
+    private final Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,7 +51,7 @@ class ProAppointmentControllerTest {
             Availability.builder()
                 .practitionerId(practitioner.getId())
                 .startDate(startDate)
-                .endDate(startDate.plusMinutes(15))
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
                 .build()
         );
 
@@ -59,8 +59,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": %d,
                 "practitionerId": %d,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """.formatted(patient.getId(), practitioner.getId());
 
@@ -79,8 +79,8 @@ class ProAppointmentControllerTest {
         String json = """
             {
                 "practitionerId": 1,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """;
 
@@ -95,8 +95,8 @@ class ProAppointmentControllerTest {
         String json = """
             {
                 "patientId": 1,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """;
 
@@ -112,8 +112,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": -1,
                 "practitionerId": 1,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """;
 
@@ -129,7 +129,7 @@ class ProAppointmentControllerTest {
             {
                 "patientId": 1,
                 "practitionerId": 1,
-                "endDate": "2020-02-05T11:15:00"
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """;
 
@@ -164,8 +164,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": %d,
                 "practitionerId": 999999,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """.formatted(patient.getId());
 
@@ -184,8 +184,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": %d,
                 "practitionerId": %d,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """.formatted(patient.getId(), practitioner.getId());
 
@@ -211,7 +211,7 @@ class ProAppointmentControllerTest {
 
         // patient already has appointment with practitioner A at [11:00, 11:15]
         appointmentRepository.save(entityFactory.createAppointment(
-            practitionerA.getId(), patient.getId(), startDate, startDate.plusMinutes(15)
+            practitionerA.getId(), patient.getId(), startDate, startDate.plus(Duration.ofMinutes(15))
         ));
 
         // practitioner B has availability at the same time range
@@ -219,7 +219,7 @@ class ProAppointmentControllerTest {
             Availability.builder()
                 .practitionerId(practitionerB.getId())
                 .startDate(startDate)
-                .endDate(startDate.plusMinutes(15))
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
                 .build()
         );
 
@@ -228,8 +228,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": %d,
                 "practitionerId": %d,
-                "startDate": "2020-02-05T11:00:00",
-                "endDate": "2020-02-05T11:15:00"
+                "startDate": "2020-02-05T11:00:00Z",
+                "endDate": "2020-02-05T11:15:00Z"
             }
             """.formatted(patient.getId(), practitionerB.getId());
 
@@ -247,15 +247,15 @@ class ProAppointmentControllerTest {
 
         // patient already has appointment with practitioner A at [11:00, 11:15]
         appointmentRepository.save(entityFactory.createAppointment(
-            practitionerA.getId(), patient.getId(), startDate, startDate.plusMinutes(15)
+            practitionerA.getId(), patient.getId(), startDate, startDate.plus(Duration.ofMinutes(15))
         ));
 
         // practitioner B has availability at overlapping time range [11:10, 11:25]
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitionerB.getId())
-                .startDate(startDate.plusMinutes(10))
-                .endDate(startDate.plusMinutes(25))
+                .startDate(startDate.plus(Duration.ofMinutes(10)))
+                .endDate(startDate.plus(Duration.ofMinutes(25)))
                 .build()
         );
 
@@ -264,8 +264,8 @@ class ProAppointmentControllerTest {
             {
                 "patientId": %d,
                 "practitionerId": %d,
-                "startDate": "2020-02-05T11:10:00",
-                "endDate": "2020-02-05T11:25:00"
+                "startDate": "2020-02-05T11:10:00Z",
+                "endDate": "2020-02-05T11:25:00Z"
             }
             """.formatted(patient.getId(), practitionerB.getId());
 

@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -25,10 +25,10 @@ public class Availability {
     private Integer practitionerId;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private Instant startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate;
+    private Instant endDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

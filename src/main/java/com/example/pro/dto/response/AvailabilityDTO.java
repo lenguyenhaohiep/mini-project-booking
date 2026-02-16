@@ -1,6 +1,6 @@
 package com.example.pro.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO representing a practitioner's availability slot.
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public record AvailabilityDTO(
     Long id,
     Integer practitionerId,
-    LocalDateTime startDate,
-    LocalDateTime endDate
+    Instant startDate,
+    Instant endDate
 ) {
 }

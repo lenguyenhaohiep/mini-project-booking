@@ -1,10 +1,9 @@
 package com.example.pro.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Request payload for creating an appointment.
@@ -21,10 +20,10 @@ public record AppointmentRequestDTO(
     @NotNull @Positive
     Integer practitionerId,
 
-    @NotNull @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime startDate,
+    @NotNull
+    Instant startDate,
 
-    @NotNull @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime endDate
+    @NotNull
+    Instant endDate
 ) {
 }

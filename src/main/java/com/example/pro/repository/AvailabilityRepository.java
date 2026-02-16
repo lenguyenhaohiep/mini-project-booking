@@ -7,24 +7,24 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface AvailabilityRepository extends CrudRepository<Availability, Long> {
     List<Availability> findByPractitionerId(int id);
-    List<Availability> findByPractitionerIdAndStartDateBetween(int id, LocalDateTime start, LocalDateTime end);
+    List<Availability> findByPractitionerIdAndStartDateBetween(int id, Instant start, Instant end);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Availability> findForUpdateByPractitionerIdAndStartDateAndEndDateAndStatus(
-        int practitionerId, LocalDateTime startDate, LocalDateTime endDate, AvailabilityStatus status
+        int practitionerId, Instant startDate, Instant endDate, AvailabilityStatus status
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     default Optional<Availability> findForUpdate(
         int practitionerId,
-        LocalDateTime startDate,
-        LocalDateTime endDate,
+        Instant startDate,
+        Instant endDate,
         AvailabilityStatus status
     ) {
         return findForUpdateByPractitionerIdAndStartDateAndEndDateAndStatus(

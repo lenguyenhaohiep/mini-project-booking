@@ -1,6 +1,6 @@
 package com.example.pro.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO representing an appointment.
@@ -15,7 +15,7 @@ public record AppointmentDTO(
     Long id,
     Integer patientId,
     Integer practitionerId,
-    LocalDateTime startDate,
-    LocalDateTime endDate
+    Instant startDate,
+    Instant endDate
 ) {
 }
