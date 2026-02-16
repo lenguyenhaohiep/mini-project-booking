@@ -65,6 +65,19 @@ dates should be in UTC format `YYYY-MM-DDTHH:mm:ssZ`
 
 
 ## Run and test
+### Front-end setup
+```
+node --version
+v24.3.0
+```
+
+Run
+```
+rm -r package-lock.json
+npm install
+npm run build
+npm run start
+```
 ### Project setup
 
 Java 21 required, built locally with the version details
