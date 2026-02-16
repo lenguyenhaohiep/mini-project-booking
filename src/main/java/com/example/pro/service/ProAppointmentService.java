@@ -70,9 +70,10 @@ public class ProAppointmentService {
         if (!practitionerRepository.existsById(practitionerId)) {
             throw new PractitionerNotFound("Practitioner %s not found".formatted(practitionerId));
         }
-        if (!patientRepository.existsById(patientId)) {
-            throw new PatientNotFound("Patient %s not found".formatted(patientId));
-        }
+
+        // Lock to avoid 2 appointments in the same range and patient but different practitioner
+        patientRepository.findForUpdateById(patientId).orElseThrow(
+            () -> new PatientNotFound("Patient %s not found".formatted(patientId)));
     }
 
     /**
@@ -105,6 +106,7 @@ public class ProAppointmentService {
     public Appointment createAppointment(AppointmentRequest request) {
         validateParticipants(request.practitionerId(), request.patientId());
 
+        // Lock to avoid 2 appointments in the same range and practitioner
         var availability = availabilityRepository.findForUpdate(
             request.practitionerId(), request.startDate(), request.endDate(), AvailabilityStatus.FREE
         ).orElseThrow(() -> new AvailabilityNotFound("Availability not found"));

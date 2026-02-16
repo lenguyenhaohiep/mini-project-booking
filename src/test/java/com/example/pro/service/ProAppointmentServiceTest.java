@@ -70,7 +70,8 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         assertThat(saved.getEndDate()).isEqualTo(startDate.plus(Duration.ofMinutes(15)));
 
         // availability should be booked after booking
-        assertThat(availabilityRepository.findById(availability.getId()).get().getStatus())
+        assertThat(availabilityRepository.findById(availability.getId()))
+            .isPresent().get().extracting(Availability::getStatus)
             .isEqualTo(AvailabilityStatus.UNAVAILABLE);
     }
 
@@ -215,6 +216,58 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         assertThat(caughtException.get()).isNotNull().isInstanceOf(AvailabilityNotFound.class);
         assertThat(availabilityRepository.findById(availability.getId()))
             .isPresent().get().extracting(Availability::getStatus).isEqualTo(AvailabilityStatus.UNAVAILABLE);
+    }
+
+    @Test
+    void givenConcurrentBookingsSameTimeRangeButDifferentPractitioners_whenCreateAppointment_thenOnlyOneCreated() throws Exception {
+        Practitioner practitionerA = practitionerRepository.save(entityFactory.createPractitioner());
+        Practitioner practitionerB = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        Availability availabilityA = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitionerA.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+        Availability availabilityB = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitionerB.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
+        AtomicReference<RuntimeException> caughtException = new AtomicReference<>();
+
+        Thread vt1 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patient.getId(),
+                    practitionerA.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+        Thread vt2 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patient.getId(),
+                    practitionerB.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+
+        vt1.join();
+        vt2.join();
+
+        assertThat(caughtException.get()).isNotNull().isInstanceOf(AppointmentOverlapExisted.class);
+        assertThat(appointmentRepository.findByPatientId(patient.getId())).hasSize(1);
     }
 
     @Test

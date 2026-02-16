@@ -45,7 +45,7 @@ class TimeRangeUtilTest {
         );
     }
 
-    // test 2 overlapping 2 time ranges [a,b][b,c] then expected [a,c]
+    // test 2 adjacent 2 time ranges [a,b][b,c] then expected [a,c]
     @Test
     void given2AdjacentTimeRanges_whenSortAndMerge_thenReturnsMerged() {
         List<TimeRange> input = List.of(
@@ -158,7 +158,7 @@ class TimeRangeUtilTest {
         assertThat(result).isEmpty();
     }
 
-    // test subtract 2 time ranges: the second is inside overlap
+    // test subtract base with two overlapping ranges
     @Test
     void givenTwoRangesOverlapBase_whenSubtract_thenReturnValidFreeRanges() {
         List<TimeRange> base = List.of(new TimeRange(T10, T15));

@@ -25,7 +25,6 @@ public interface AppointmentMapper {
 
     /**
      * Converts an {@link AppointmentRequestDTO} to an {@link com.example.pro.model.AppointmentRequest} entity.
-     * The {@code id} field is ignored as it will be generated on persist.
      *
      * @param appointmentRequestDTO the request to convert
      * @return the corresponding entity

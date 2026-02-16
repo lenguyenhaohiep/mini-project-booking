@@ -6,25 +6,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class IntegrationBaseTest {
     @Autowired
-    public ProAppointmentService proAppointmentService;
+    protected ProAppointmentService proAppointmentService;
 
     @Autowired
-    public AppointmentRepository appointmentRepository;
+    protected AppointmentRepository appointmentRepository;
 
     @Autowired
-    public AvailabilityRepository availabilityRepository;
+    protected AvailabilityRepository availabilityRepository;
 
     @Autowired
-    public PractitionerRepository practitionerRepository;
+    protected PractitionerRepository practitionerRepository;
 
     @Autowired
-    public PatientRepository patientRepository;
+    protected PatientRepository patientRepository;
 
     @Autowired
-    public TimeSlotRepository timeSlotRepository;
+    protected TimeSlotRepository timeSlotRepository;
 
     @Autowired
-    public ProAvailabilityService proAvailabilityService;
+    protected ProAvailabilityService proAvailabilityService;
 
     @BeforeEach
     public void setUp() {

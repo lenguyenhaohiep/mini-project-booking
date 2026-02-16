@@ -3,21 +3,50 @@
 ### Business flows
 #### Generate availabilities
 ![generation_flow.png](assets/generation_flow.png)
-- Get unplanned time slots.
-- Sort and merge overlap time slots.
-- Extend slots to maximal duration - minutes (14 in this test) as availability could end after the slot end, if no overlapping with the next slot, appointments or availabilities (business logic confirmed before implementation).
-- Get appointments that are in slots’ range.
-- Get planned availabilities that are in slots’ range.
-- Combine appointments and availabilities as occupied ranges.
-- Sort and merge occupied ranges.
-- Subtract occupied ranges from extended slots to get free ranges.
-- Generate appointments with duration of 15 mins from free ranges.
+1. Get unplanned time slots.
+2. Sort and merge overlap time slots.
+3. Extend slots to maximal duration - minutes (14 in this test) as availability could end after the slot end, if no overlapping with the next slot, appointments or availabilities (business logic confirmed before implementation).
+4. Get appointments that are in slots’ range.
+5. Get planned availabilities that are in slots’ range.
+6. Combine appointments and availabilities as occupied ranges.
+7. Sort and merge occupied ranges.
+8. Subtract occupied ranges from extended slots to get free ranges.
+9. Generate appointments with duration of 15 mins from free ranges.
+
 #### Create appointments
-- Validate request (time range, partitioner, patient).
-- Ensure that availability is valid.
-- Ensure that no overlapping appointments for the given time range.
-- Change the status of availability to UNAVAILABLE.
-- Create appointment with status BOOKED.
+- All steps are in one transaction, with locks to avoid race conditions: (different patients, same availability) and (same patient, different availabilities with the overlap time ranges).
+  - Patient is locked
+  - Availability is locked
+1. Validate request (time range, partitioner, patient (LOCK)).
+2. Ensure that availability (LOCK) is valid.
+3. Ensure that no overlapping appointments for the given time range.
+4. Change the status of availability to UNAVAILABLE.
+5. Create appointment with status BOOKED. 
+
+##### Concurrency handling example
+
+```
+Two threads, different patients, same availability:
+Thread A: lock Patient 1, lock Availability X
+Thread B: lock Patient 2, lock Availability X (waits for A)
+Thread A: create appointment (1,X)
+Thread B: availability exception -> rollback -> exit
+=> only 1 appointment is created
+
+Two threads, same patient, different availabilities:
+Thread A: lock Patient 1, lock Availability X
+Thread B: lock Patient 1  (waits for A)
+Thread A: create appointment (1, X)
+Thread B: overlap exception -> rollback -> exit
+=> only 1 appointment is created
+  
+Two threads, different patients, different availabilities:
+Thread A: lock Patient 1, lock Availability X
+Thread B: lock Patient 2, lock Availability Y
+Thread A: create appointment (1,X)
+Thread B: create appointment (2,Y)
+=> 2 appointments are created.
+```
       
 ### Layer separation and models
 - Update entities to support status life cycle

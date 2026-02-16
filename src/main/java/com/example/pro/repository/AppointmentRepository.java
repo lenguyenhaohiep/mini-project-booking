@@ -12,6 +12,8 @@ import java.util.List;
 public interface AppointmentRepository extends CrudRepository<Appointment, Long> {
     List<Appointment> findAll();
 
+    List<Appointment> findByPatientId(int patientId);
+
     List<Appointment> findByPractitionerId(int practitionerId);
 
     List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(int practitionerId, Instant start,
@@ -19,8 +21,8 @@ public interface AppointmentRepository extends CrudRepository<Appointment, Long>
                                                                        AppointmentStatus status);
 
     List<Appointment> findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(int patientId,
-                                                                                        Instant date1,
-                                                                                        Instant date2,
+                                                                                        Instant start,
+                                                                                        Instant end,
                                                                                         AppointmentStatus status);
 
     default List<Appointment> findOverlappingAppointments(int patientId, Instant start, Instant end,
