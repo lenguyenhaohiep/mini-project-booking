@@ -85,12 +85,8 @@ dates should be in UTC format `YYYY-MM-DDTHH:mm:ssZ`
 - To avoid lots of changes when reviewing, some classes are not changed, eg. (class `ProAvailabilityServiceTest`, name of provided tests remains unchanged).
 
 ### Limit
-- Tests do not cover all classes, only classes related to the two main workflows are done.
-  - ProAppointmentController
-  - TimeRange
-  - ProAppointmentService
-  - ProAvailabilityService
-- Appointment cancellation and timeslot modification are not handled.
+- Tests do not cover all classes, only classes and functions related to the two main workflows are done.
+- Features such as appointment cancellation and timeslot modification are not handled.
 
 ### Assumptions
 - The flows might not reflect the actual business logic
@@ -153,8 +149,15 @@ To run unit tests
 
 ```
 ./gradlew test
+./gradlew jacocoTestReport
 ```
+Check reports in 
+```
+build/reports/jacoco/test/html/index.html 
+build/reports/tests/index.html
 
+```
+![test_coverage.png](assets/test_coverage.png)
 ## Improvements
 ### Api
 - API versioning eg. `/v1/availabilities`

@@ -1,6 +1,7 @@
 package com.example.pro.model;
 
 import com.example.pro.exception.TimeRangeInvalidException;
+import com.example.pro.utils.Validator;
 
 import java.time.Instant;
 
@@ -23,11 +24,6 @@ public record TimeRange(
      * @throws TimeRangeInvalidException          if {@code startDate} is not before {@code endDate}
      */
     public TimeRange {
-        if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("Dates cannot be null");
-        }
-        if (!startDate.isBefore(endDate)) {
-            throw new TimeRangeInvalidException("startDate must be before endDate");
-        }
+        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

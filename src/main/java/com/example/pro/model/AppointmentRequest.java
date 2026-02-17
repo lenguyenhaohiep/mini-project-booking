@@ -1,6 +1,7 @@
 package com.example.pro.model;
 
 import com.example.pro.exception.TimeRangeInvalidException;
+import com.example.pro.utils.Validator;
 
 import java.time.Instant;
 
@@ -27,17 +28,8 @@ public record AppointmentRequest(
      * @throws TimeRangeInvalidException          if {@code startDate} is not before {@code endDate}
      */
     public AppointmentRequest {
-        if (practitionerId < 1) {
-            throw new IllegalArgumentException("practitionerId should be positive");
-        }
-        if (patientId < 1) {
-            throw new IllegalArgumentException("patientId should be positive");
-        }
-        if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("Dates cannot be null");
-        }
-        if (!startDate.isBefore(endDate)) {
-            throw new TimeRangeInvalidException("startDate must be before endDate");
-        }
+        Validator.validateValidId(patientId, "patientId");
+        Validator.validateValidId(practitionerId, "practitionerId");
+        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

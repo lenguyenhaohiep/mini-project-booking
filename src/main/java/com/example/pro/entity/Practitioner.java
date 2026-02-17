@@ -1,5 +1,6 @@
 package com.example.pro.entity;
 
+import com.example.pro.utils.Validator;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,11 +30,7 @@ public class Practitioner {
     @PrePersist
     @PreUpdate
     private void validate() {
-        if (firstName == null || firstName.isBlank()) {
-            throw new IllegalArgumentException("firstName must not be null or blank");
-        }
-        if (lastName == null || lastName.isBlank()) {
-            throw new IllegalArgumentException("lastName must not be null or blank");
-        }
+        Validator.validateNotBlank(firstName, "firstName");
+        Validator.validateNotBlank(lastName, "lastName");
     }
 }
