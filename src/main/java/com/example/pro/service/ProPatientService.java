@@ -2,18 +2,19 @@ package com.example.pro.service;
 
 import com.example.pro.entity.Patient;
 import com.example.pro.repository.PatientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProPatientService {
-    @Autowired
-    private PatientRepository patientRepository;
+    private final PatientRepository patientRepository;
 
-    public Patient find(String patientId) {
-        return patientRepository.findById(patientId).orElseThrow();
+    public Optional<Patient> find(int patientId) {
+        return patientRepository.findById(patientId);
     }
 
     public List<Patient> findAll() {

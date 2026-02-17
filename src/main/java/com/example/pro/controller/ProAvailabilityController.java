@@ -1,10 +1,13 @@
 package com.example.pro.controller;
 
-import com.example.pro.entity.Availability;
+import com.example.pro.dto.mapper.AvailabilityMapper;
+import com.example.pro.dto.response.AvailabilityDTO;
 import com.example.pro.service.ProAvailabilityService;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,13 +15,15 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequestMapping(value = "/availabilities", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+@Validated
 public class ProAvailabilityController {
-    @Autowired
-    private ProAvailabilityService proAvailabilityService;
+    private final ProAvailabilityService proAvailabilityService;
 
-    @ApiOperation(value = "Get availabilities by practitionerId")
+    @Operation(description = "Get availabilities by practitionerId")
     @GetMapping
-    public List<Availability> getAvailabilities(@RequestParam final Integer practitionerId) {
-        return proAvailabilityService.findByPractitionerId(practitionerId);
+    public List<AvailabilityDTO> getAvailabilities(@Positive @RequestParam final Integer practitionerId) {
+        return proAvailabilityService.findFreeAvailabilitiesByPractitionerId(practitionerId)
+            .stream().map(AvailabilityMapper.INSTANCE::toDTO).toList();
     }
 }

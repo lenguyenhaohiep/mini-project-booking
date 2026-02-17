@@ -83,6 +83,7 @@ const AppointmentForm = () => {
           required="The patient field is required"
           className="select"
         />
+        <div style={{color:"red"}}>Times are shown in {new Date().toString().match(/GMT[+-]\d{4}/)[0]}</div>
         <AvailabilityField name="availabilityId" />
         <button className="cta" type="submit">
           Create appointment

@@ -1,0 +1,308 @@
+package com.example.pro.service;
+
+import com.example.pro.EntityFactory;
+import com.example.pro.entity.Appointment;
+import com.example.pro.entity.Availability;
+import com.example.pro.entity.Patient;
+import com.example.pro.entity.Practitioner;
+import com.example.pro.exception.AppointmentOverlapExistedException;
+import com.example.pro.exception.AvailabilityNotFoundException;
+import com.example.pro.exception.PatientNotFoundException;
+import com.example.pro.exception.PractitionerNotFoundException;
+import com.example.pro.model.AppointmentRequest;
+import com.example.pro.model.AvailabilityStatus;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+class ProAppointmentServiceTest extends IntegrationBaseTest {
+
+    private final EntityFactory entityFactory = new EntityFactory();
+
+    private final Instant startDate = Instant.parse("2026-02-05T11:00:00Z");
+
+    @Test
+    void givenAppointmentExists_whenFindById_thenReturn() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        var appointment = appointmentRepository.save(entityFactory.createAppointment(practitioner.getId(),
+            patient.getId(),
+            startDate,
+            startDate.plus(Duration.ofMinutes(15))));
+
+        assertThat(proAppointmentService.find(appointment.getId())).isPresent();
+    }
+
+    @Test
+    void givenValidData_whenCreateAppointment_thenSavesAndDeletesAvailability() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        Availability availability = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+        assertThat(availability.getStatus()).isEqualTo(AvailabilityStatus.FREE);
+
+        var request = new AppointmentRequest(patient.getId(),
+            practitioner.getId(),
+            startDate,
+            startDate.plus(Duration.ofMinutes(15)));
+
+        Appointment saved = proAppointmentService.createAppointment(request);
+
+        assertThat(saved.getId()).isNotNull();
+        assertThat(saved.getPractitionerId()).isEqualTo(practitioner.getId());
+        assertThat(saved.getPatientId()).isEqualTo(patient.getId());
+        assertThat(saved.getStartDate()).isEqualTo(startDate);
+        assertThat(saved.getEndDate()).isEqualTo(startDate.plus(Duration.ofMinutes(15)));
+
+        // availability should be booked after booking
+        assertThat(availabilityRepository.findById(availability.getId()))
+            .isPresent().get().extracting(Availability::getStatus)
+            .isEqualTo(AvailabilityStatus.UNAVAILABLE);
+    }
+
+    @Test
+    void givenInvalidPractitionerId_whenCreateAppointment_thenThrowsPractitionerNotFound() {
+        var request = new AppointmentRequest(1, 999999, startDate, startDate.plus(Duration.ofMinutes(15)));
+
+        assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
+            .isInstanceOf(PractitionerNotFoundException.class);
+    }
+
+    @Test
+    void givenInvalidPatientId_whenCreateAppointment_thenThrowsPatientNotFound() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+
+        var request = new AppointmentRequest(999999, practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
+
+        assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
+            .isInstanceOf(PatientNotFoundException.class);
+    }
+
+    @Test
+    void givenDuplicateAppointmentWithOtherPractitioner_whenCreateAppointment_thenThrowsAppointmentAlreadyExisted() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Practitioner practitioner2 = practitionerRepository.save(entityFactory.createPractitioner());
+
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+        availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner2.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
+
+        // create first appointment
+        var first = new AppointmentRequest(patient.getId(), practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
+        proAppointmentService.createAppointment(first);
+
+        // attempt duplicate
+        var duplicate = new AppointmentRequest(patient.getId(),
+            practitioner2.getId(),
+            startDate,
+            startDate.plus(Duration.ofMinutes(15)));
+
+        assertThatThrownBy(() -> proAppointmentService.createAppointment(duplicate))
+            .isInstanceOf(AppointmentOverlapExistedException.class);
+    }
+
+    @Test
+    void givenNoAvailability_whenCreateAppointment_thenThrowsAvailabilityNotFound() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+
+        var request = new AppointmentRequest(patient.getId(),
+            practitioner.getId(),
+            startDate,
+            startDate.plus(Duration.ofMinutes(15)));
+
+        assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
+            .isInstanceOf(AvailabilityNotFoundException.class);
+    }
+
+    @Test
+    void givenExistingAppointment_whenFindByPractitionerId_thenReturnsAppointments() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        appointmentRepository.save(entityFactory.createAppointment(
+            practitioner.getId(), patient.getId(), startDate, startDate.plus(Duration.ofMinutes(15))
+        ));
+
+        List<Appointment> result = proAppointmentService.findByPractitionerId(practitioner.getId());
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getPractitionerId()).isEqualTo(practitioner.getId());
+    }
+
+    @Test
+    void givenExistingAppointments_whenFindAll_thenReturnsAll() {
+        long countBefore = appointmentRepository.count();
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        appointmentRepository.save(entityFactory.createAppointment(
+            practitioner.getId(), patient.getId(), startDate, startDate.plus(Duration.ofMinutes(15))
+        ));
+
+        List<Appointment> result = proAppointmentService.findAll();
+
+        assertThat(result).hasSize((int) (countBefore + 1));
+    }
+
+    @Test
+    void givenConcurrentBookings_whenCreateAppointment_thenOnlyOneCreated() throws Exception {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patientA = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        Patient patientB = patientRepository.save(Patient.builder().firstName("James").lastName("Smith").build());
+        Availability availability = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
+        AtomicReference<RuntimeException> caughtException = new AtomicReference<>();
+
+        Thread vt1 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patientA.getId(),
+                    practitioner.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+        Thread vt2 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patientB.getId(),
+                    practitioner.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+
+        vt1.join();
+        vt2.join();
+
+        assertThat(appointmentRepository.findByPractitionerId(practitioner.getId())).hasSize(1);
+        assertThat(caughtException.get()).isNotNull().isInstanceOf(AvailabilityNotFoundException.class);
+        assertThat(availabilityRepository.findById(availability.getId()))
+            .isPresent().get().extracting(Availability::getStatus).isEqualTo(AvailabilityStatus.UNAVAILABLE);
+    }
+
+    @Test
+    void givenConcurrentBookingsSameTimeRangeButDifferentPractitioners_whenCreateAppointment_thenOnlyOneCreated() throws Exception {
+        Practitioner practitionerA = practitionerRepository.save(entityFactory.createPractitioner());
+        Practitioner practitionerB = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        Availability availabilityA = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitionerA.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+        Availability availabilityB = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitionerB.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
+        AtomicReference<RuntimeException> caughtException = new AtomicReference<>();
+
+        Thread vt1 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patient.getId(),
+                    practitionerA.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+        Thread vt2 = Thread.startVirtualThread(() -> {
+            try {
+                var request = new AppointmentRequest(patient.getId(),
+                    practitionerB.getId(),
+                    startDate,
+                    startDate.plus(Duration.ofMinutes(15)));
+                proAppointmentService.createAppointment(request);
+            } catch (RuntimeException e) {
+                caughtException.set(e);
+            }
+        });
+
+        vt1.join();
+        vt2.join();
+
+        assertThat(caughtException.get()).isNotNull().isInstanceOf(AppointmentOverlapExistedException.class);
+        assertThat(appointmentRepository.findByPatientId(patient.getId())).hasSize(1);
+    }
+
+    @Test
+    void givenRuntimeException_whenCreateAppointment_thenRollbackTransaction() {
+        Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
+        Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
+        Availability availability = availabilityRepository.save(
+            Availability.builder()
+                .practitionerId(practitioner.getId())
+                .startDate(startDate)
+                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .build()
+        );
+
+        long appointmentCountBefore = appointmentRepository.count();
+
+        var request = new AppointmentRequest(patient.getId(),
+            practitioner.getId(),
+            startDate,
+            startDate.plus(Duration.ofMinutes(15)));
+
+        try (MockedStatic<Appointment> mockedAppointment = Mockito.mockStatic(Appointment.class,
+            Mockito.CALLS_REAL_METHODS)) {
+            Appointment.AppointmentBuilder builderMock = Mockito.mock(Appointment.AppointmentBuilder.class);
+            mockedAppointment.when(Appointment::builder).thenReturn(builderMock);
+            Mockito.when(builderMock.build()).thenThrow(new RuntimeException("Build failed"));
+
+            assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
+                .isInstanceOf(RuntimeException.class);
+
+            // Verify rollback: appointment was not persisted
+            assertThat(appointmentRepository.count()).isEqualTo(appointmentCountBefore);
+            // Verify rollback: availability still exists
+            assertThat(availabilityRepository.findById(availability.getId()))
+                .isPresent().get().extracting(Availability::getStatus).isEqualTo(AvailabilityStatus.FREE);
+        }
+    }
+}

@@ -1,9 +1,10 @@
 package com.example.pro.controller;
 
-import com.example.pro.entity.Patient;
+import com.example.pro.dto.mapper.PatientMapper;
+import com.example.pro.dto.response.PatientDTO;
 import com.example.pro.service.ProPatientService;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +16,13 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequestMapping(value = "/patients", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ProPatientController {
-    @Autowired
-    private ProPatientService proPatientService;
+    private final ProPatientService proPatientService;
 
-    @ApiOperation(value = "Get patients")
+    @Operation(description = "Get patients")
     @GetMapping
-    public List<Patient> getPatients() {
-        return proPatientService.findAll();
+    public List<PatientDTO> getPatients() {
+        return proPatientService.findAll().stream().map(PatientMapper.INSTANCE::toDTO).toList();
     }
 }

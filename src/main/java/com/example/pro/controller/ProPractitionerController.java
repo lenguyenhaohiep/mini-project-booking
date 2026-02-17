@@ -1,9 +1,10 @@
 package com.example.pro.controller;
 
-import com.example.pro.entity.Practitioner;
+import com.example.pro.dto.mapper.PractitionerMapper;
+import com.example.pro.dto.response.PractitionerDTO;
 import com.example.pro.service.ProPractitionerService;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +16,13 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequestMapping(value = "/practitioners", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ProPractitionerController {
-    @Autowired
-    private ProPractitionerService proPractitionerService;
+    private final ProPractitionerService proPractitionerService;
 
-    @ApiOperation(value = "Get practitioners")
+    @Operation(description = "Get practitioners")
     @GetMapping
-    public List<Practitioner> getPractitioners() {
-        return proPractitionerService.findAll();
+    public List<PractitionerDTO> getPractitioners() {
+        return proPractitionerService.findAll().stream().map(PractitionerMapper.INSTANCE::toDTO).toList();
     }
 }
