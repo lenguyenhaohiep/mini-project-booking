@@ -16,19 +16,16 @@ public interface AppointmentRepository extends CrudRepository<Appointment, Long>
 
     List<Appointment> findByPractitionerId(int practitionerId);
 
-    List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(int practitionerId, Instant start,
-                                                                       Instant end,
-                                                                       AppointmentStatus status);
+    List<Appointment> findByPractitionerIdAndTimeRange_StartDateBetweenAndStatus(int practitionerId, Instant start,
+                                                                                 Instant end,
+                                                                                 AppointmentStatus status);
 
-    List<Appointment> findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(int patientId,
-                                                                                        Instant start,
-                                                                                        Instant end,
-                                                                                        AppointmentStatus status);
+    List<Appointment> findByPatientIdAndTimeRange_EndDateGreaterThanAndTimeRange_StartDateLessThanAndStatus(
+        int patientId, Instant start, Instant end, AppointmentStatus status);
 
     default List<Appointment> findOverlappingAppointments(int patientId, Instant start, Instant end,
-                                                  AppointmentStatus status) {
-        return findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(
-            patientId, start, end, status
-        );
+                                                          AppointmentStatus status) {
+        return findByPatientIdAndTimeRange_EndDateGreaterThanAndTimeRange_StartDateLessThanAndStatus(
+            patientId, start, end, status);
     }
 }

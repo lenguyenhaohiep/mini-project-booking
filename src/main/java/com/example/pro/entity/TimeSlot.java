@@ -10,8 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,11 +24,12 @@ public class TimeSlot {
     @Column(name = "practitioner_id")
     private Integer practitionerId;
 
-    @Column(name = "start_date")
-    private Instant startDate;
-
-    @Column(name = "end_date")
-    private Instant endDate;
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "startDate", column = @Column(name = "start_date")),
+        @AttributeOverride(name = "endDate", column = @Column(name = "end_date"))
+    })
+    private TimeRange timeRange;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -44,14 +43,9 @@ public class TimeSlot {
         setStatus(TimeSlotStatus.PLANNED);
     }
 
-    public TimeRange getTimeRange() {
-        return new TimeRange(startDate, endDate);
-    }
-
     @PrePersist
     @PreUpdate
     private void validate() {
         Validator.validateValidId(practitionerId, "practitionerId");
-        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

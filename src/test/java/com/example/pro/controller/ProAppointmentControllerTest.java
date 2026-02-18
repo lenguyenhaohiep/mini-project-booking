@@ -4,6 +4,7 @@ import com.example.pro.EntityFactory;
 import com.example.pro.entity.Availability;
 import com.example.pro.entity.Patient;
 import com.example.pro.entity.Practitioner;
+import com.example.pro.model.TimeRange;
 import com.example.pro.repository.AppointmentRepository;
 import com.example.pro.repository.AvailabilityRepository;
 import com.example.pro.repository.PatientRepository;
@@ -50,8 +51,7 @@ class ProAppointmentControllerTest {
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
@@ -173,7 +173,7 @@ class ProAppointmentControllerTest {
     }
 
     @Test
-    void givenInvalidPractitionerId_whenCreateAppointment_thenReturns400() throws Exception {
+    void givenInvalidPractitionerId_whenCreateAppointment_thenReturns404() throws Exception {
         Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
 
         String json = """
@@ -188,11 +188,11 @@ class ProAppointmentControllerTest {
         mockMvc.perform(post("/appointments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound());
     }
 
     @Test
-    void givenNoAvailability_whenCreateAppointment_thenReturns400() throws Exception {
+    void givenNoAvailability_whenCreateAppointment_thenReturns404() throws Exception {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
         Patient patient = patientRepository.save(Patient.builder().firstName("John").lastName("Doe").build());
 
@@ -208,7 +208,7 @@ class ProAppointmentControllerTest {
         mockMvc.perform(post("/appointments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -234,8 +234,7 @@ class ProAppointmentControllerTest {
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitionerB.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
@@ -270,8 +269,7 @@ class ProAppointmentControllerTest {
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitionerB.getId())
-                .startDate(startDate.plus(Duration.ofMinutes(10)))
-                .endDate(startDate.plus(Duration.ofMinutes(25)))
+                .timeRange(new TimeRange(startDate.plus(Duration.ofMinutes(10)), startDate.plus(Duration.ofMinutes(25))))
                 .build()
         );
 

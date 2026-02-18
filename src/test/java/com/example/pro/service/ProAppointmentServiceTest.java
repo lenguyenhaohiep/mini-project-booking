@@ -11,6 +11,7 @@ import com.example.pro.exception.PatientNotFoundException;
 import com.example.pro.exception.PractitionerNotFoundException;
 import com.example.pro.model.AppointmentRequest;
 import com.example.pro.model.AvailabilityStatus;
+import com.example.pro.model.TimeRange;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -50,24 +51,22 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         Availability availability = availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
         assertThat(availability.getStatus()).isEqualTo(AvailabilityStatus.FREE);
 
         var request = new AppointmentRequest(patient.getId(),
             practitioner.getId(),
-            startDate,
-            startDate.plus(Duration.ofMinutes(15)));
+            new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         Appointment saved = proAppointmentService.createAppointment(request);
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getPractitionerId()).isEqualTo(practitioner.getId());
         assertThat(saved.getPatientId()).isEqualTo(patient.getId());
-        assertThat(saved.getStartDate()).isEqualTo(startDate);
-        assertThat(saved.getEndDate()).isEqualTo(startDate.plus(Duration.ofMinutes(15)));
+        assertThat(saved.getTimeRange().startDate()).isEqualTo(startDate);
+        assertThat(saved.getTimeRange().endDate()).isEqualTo(startDate.plus(Duration.ofMinutes(15)));
 
         // availability should be booked after booking
         assertThat(availabilityRepository.findById(availability.getId()))
@@ -77,7 +76,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
 
     @Test
     void givenInvalidPractitionerId_whenCreateAppointment_thenThrowsPractitionerNotFound() {
-        var request = new AppointmentRequest(1, 999999, startDate, startDate.plus(Duration.ofMinutes(15)));
+        var request = new AppointmentRequest(1, 999999, new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
             .isInstanceOf(PractitionerNotFoundException.class);
@@ -87,7 +86,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
     void givenInvalidPatientId_whenCreateAppointment_thenThrowsPatientNotFound() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
 
-        var request = new AppointmentRequest(999999, practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
+        var request = new AppointmentRequest(999999, practitioner.getId(), new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
             .isInstanceOf(PatientNotFoundException.class);
@@ -102,28 +101,25 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
         availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner2.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
 
         // create first appointment
-        var first = new AppointmentRequest(patient.getId(), practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
+        var first = new AppointmentRequest(patient.getId(), practitioner.getId(), new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
         proAppointmentService.createAppointment(first);
 
         // attempt duplicate
         var duplicate = new AppointmentRequest(patient.getId(),
             practitioner2.getId(),
-            startDate,
-            startDate.plus(Duration.ofMinutes(15)));
+            new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(duplicate))
             .isInstanceOf(AppointmentOverlapExistedException.class);
@@ -136,8 +132,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
 
         var request = new AppointmentRequest(patient.getId(),
             practitioner.getId(),
-            startDate,
-            startDate.plus(Duration.ofMinutes(15)));
+            new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
             .isInstanceOf(AvailabilityNotFoundException.class);
@@ -179,8 +174,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         Availability availability = availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
@@ -190,8 +184,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             try {
                 var request = new AppointmentRequest(patientA.getId(),
                     practitioner.getId(),
-                    startDate,
-                    startDate.plus(Duration.ofMinutes(15)));
+                    new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
                 proAppointmentService.createAppointment(request);
             } catch (RuntimeException e) {
                 caughtException.set(e);
@@ -201,8 +194,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             try {
                 var request = new AppointmentRequest(patientB.getId(),
                     practitioner.getId(),
-                    startDate,
-                    startDate.plus(Duration.ofMinutes(15)));
+                    new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
                 proAppointmentService.createAppointment(request);
             } catch (RuntimeException e) {
                 caughtException.set(e);
@@ -226,15 +218,13 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         Availability availabilityA = availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitionerA.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
         Availability availabilityB = availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitionerB.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
@@ -244,8 +234,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             try {
                 var request = new AppointmentRequest(patient.getId(),
                     practitionerA.getId(),
-                    startDate,
-                    startDate.plus(Duration.ofMinutes(15)));
+                    new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
                 proAppointmentService.createAppointment(request);
             } catch (RuntimeException e) {
                 caughtException.set(e);
@@ -255,8 +244,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
             try {
                 var request = new AppointmentRequest(patient.getId(),
                     practitionerB.getId(),
-                    startDate,
-                    startDate.plus(Duration.ofMinutes(15)));
+                    new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
                 proAppointmentService.createAppointment(request);
             } catch (RuntimeException e) {
                 caughtException.set(e);
@@ -277,8 +265,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
         Availability availability = availabilityRepository.save(
             Availability.builder()
                 .practitionerId(practitioner.getId())
-                .startDate(startDate)
-                .endDate(startDate.plus(Duration.ofMinutes(15)))
+                .timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))))
                 .build()
         );
 
@@ -286,8 +273,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
 
         var request = new AppointmentRequest(patient.getId(),
             practitioner.getId(),
-            startDate,
-            startDate.plus(Duration.ofMinutes(15)));
+            new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15))));
 
         try (MockedStatic<Appointment> mockedAppointment = Mockito.mockStatic(Appointment.class,
             Mockito.CALLS_REAL_METHODS)) {

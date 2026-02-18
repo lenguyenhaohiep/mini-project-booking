@@ -9,8 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,26 +26,22 @@ public class Appointment {
     @Column(name = "practitioner_id")
     private Integer practitionerId;
 
-    @Column(name = "start_date")
-    private Instant startDate;
-
-    @Column(name = "end_date")
-    private Instant endDate;
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "startDate", column = @Column(name = "start_date")),
+        @AttributeOverride(name = "endDate", column = @Column(name = "end_date"))
+    })
+    private TimeRange timeRange;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AppointmentStatus status = AppointmentStatus.BOOKED;
 
-    public TimeRange getTimeRange() {
-        return new TimeRange(startDate, endDate);
-    }
-
     @PrePersist
     @PreUpdate
     private void validate() {
         Validator.validateValidId(patientId, "patientId");
         Validator.validateValidId(practitionerId, "practitionerId");
-        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

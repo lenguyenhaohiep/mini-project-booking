@@ -73,7 +73,7 @@ public class ProAvailabilityService {
         while (!start.plus(APPOINTMENT_DURATION).isAfter(timeRange.endDate())) {
             Instant end = start.plus(APPOINTMENT_DURATION);
             availabilities.add(
-                Availability.builder().startDate(start).endDate(end).practitionerId(practitionerId).build()
+                Availability.builder().timeRange(new TimeRange(start, end)).practitionerId(practitionerId).build()
             );
             start = end;
         }
@@ -140,10 +140,10 @@ public class ProAvailabilityService {
      * @return sorted, non-overlapping list of occupied time ranges
      */
     private List<TimeRange> getOccupiedTimeRanges(int practitionerId, TimeRange range) {
-        List<Appointment> appointments = appointmentRepository.findByPractitionerIdAndStartDateBetweenAndStatus(
+        List<Appointment> appointments = appointmentRepository.findByPractitionerIdAndTimeRange_StartDateBetweenAndStatus(
             practitionerId, range.startDate(), range.endDate(), AppointmentStatus.BOOKED
         );
-        List<Availability> existingAvailabilities = availabilityRepository.findByPractitionerIdAndStartDateBetween(
+        List<Availability> existingAvailabilities = availabilityRepository.findByPractitionerIdAndTimeRange_StartDateBetween(
             practitionerId, range.startDate(), range.endDate()
         );
         var occupiedRanges = Stream.concat(

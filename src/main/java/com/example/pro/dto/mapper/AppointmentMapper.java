@@ -4,7 +4,9 @@ import com.example.pro.dto.request.AppointmentRequestDTO;
 import com.example.pro.dto.response.AppointmentDTO;
 import com.example.pro.entity.Appointment;
 import com.example.pro.model.AppointmentRequest;
+import com.example.pro.model.TimeRange;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -21,13 +23,21 @@ public interface AppointmentMapper {
      * @param appointment the entity to convert
      * @return the corresponding DTO
      */
+    @Mapping(source = "timeRange.startDate", target = "startDate")
+    @Mapping(source = "timeRange.endDate", target = "endDate")
     AppointmentDTO toDTO(Appointment appointment);
 
     /**
-     * Converts an {@link AppointmentRequestDTO} to an {@link com.example.pro.model.AppointmentRequest} entity.
+     * Converts an {@link AppointmentRequestDTO} to an {@link AppointmentRequest}.
      *
-     * @param appointmentRequestDTO the request to convert
-     * @return the corresponding entity
+     * @param dto the request DTO to convert
+     * @return the corresponding domain request
      */
-    AppointmentRequest fromDTO(AppointmentRequestDTO appointmentRequestDTO);
+    default AppointmentRequest fromDTO(AppointmentRequestDTO dto) {
+        return new AppointmentRequest(
+            dto.patientId(),
+            dto.practitionerId(),
+            new TimeRange(dto.startDate(), dto.endDate())
+        );
+    }
 }
