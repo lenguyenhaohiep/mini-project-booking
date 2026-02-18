@@ -1,6 +1,7 @@
 package com.example.pro;
 
 import com.example.pro.entity.Availability;
+import com.example.pro.model.TimeRange;
 import com.github.javafaker.Faker;
 import com.example.pro.entity.Appointment;
 import com.example.pro.entity.Practitioner;
@@ -22,8 +23,7 @@ public class EntityFactory {
     public TimeSlot createTimeSlot(Integer practitionerId, Instant startDate, Instant endDate) {
         return TimeSlot.builder()
                 .practitionerId(practitionerId)
-                .startDate(startDate)
-                .endDate(endDate)
+                .timeRange(new TimeRange(startDate, endDate))
                 .build();
     }
 
@@ -31,16 +31,14 @@ public class EntityFactory {
         return Appointment.builder()
                 .practitionerId(practitionerId)
                 .patientId(patientId)
-                .startDate(start)
-                .endDate(end)
+                .timeRange(new TimeRange(start, end))
                 .build();
     }
 
     public Availability createAvailability(Integer practitionerId, Instant start, Instant end) {
         return Availability.builder()
             .practitionerId(practitionerId)
-            .startDate(start)
-            .endDate(end)
+            .timeRange(new TimeRange(start, end))
             .build();
     }
 }

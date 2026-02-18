@@ -15,21 +15,15 @@ import java.util.Optional;
 public interface AvailabilityRepository extends CrudRepository<Availability, Long> {
     List<Availability> findByPractitionerId(int practitionerId);
     List<Availability> findByPractitionerIdAndStatus(int practitionerId, AvailabilityStatus status);
-    List<Availability> findByPractitionerIdAndStartDateBetween(int practitionerId, Instant start, Instant end);
+    List<Availability> findByPractitionerIdAndTimeRange_StartDateBetween(int practitionerId, Instant start, Instant end);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Availability> findForUpdateByPractitionerIdAndStartDateAndEndDateAndStatus(
-        int practitionerId, Instant startDate, Instant endDate, AvailabilityStatus status
-    );
+    Optional<Availability> findByPractitionerIdAndTimeRange_StartDateAndTimeRange_EndDateAndStatus(
+        int practitionerId, Instant startDate, Instant endDate, AvailabilityStatus status);
 
-    default Optional<Availability> findForUpdate(
-        int practitionerId,
-        Instant startDate,
-        Instant endDate,
-        AvailabilityStatus status
-    ) {
-        return findForUpdateByPractitionerIdAndStartDateAndEndDateAndStatus(
-            practitionerId, startDate, endDate, status
-        );
+    default Optional<Availability> findForUpdate(int practitionerId, Instant startDate, Instant endDate,
+                                                  AvailabilityStatus status) {
+        return findByPractitionerIdAndTimeRange_StartDateAndTimeRange_EndDateAndStatus(
+            practitionerId, startDate, endDate, status);
     }
 }

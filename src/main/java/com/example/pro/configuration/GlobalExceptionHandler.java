@@ -18,9 +18,9 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Map<Class<? extends Exception>, HttpStatus> EXCEPTION_TO_HTTP_STATUS = Map.ofEntries(
-        Map.entry(PatientNotFoundException.class, HttpStatus.BAD_REQUEST),
-        Map.entry(PractitionerNotFoundException.class, HttpStatus.BAD_REQUEST),
-        Map.entry(AvailabilityNotFoundException.class, HttpStatus.BAD_REQUEST),
+        Map.entry(PatientNotFoundException.class, HttpStatus.NOT_FOUND),
+        Map.entry(PractitionerNotFoundException.class, HttpStatus.NOT_FOUND),
+        Map.entry(AvailabilityNotFoundException.class, HttpStatus.NOT_FOUND),
         Map.entry(TimeRangeInvalidException.class, HttpStatus.BAD_REQUEST),
         Map.entry(AppointmentOverlapExistedException.class, HttpStatus.CONFLICT),
         Map.entry(InvalidStateChangeException.class, HttpStatus.INTERNAL_SERVER_ERROR)

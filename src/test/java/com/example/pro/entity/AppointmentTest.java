@@ -1,6 +1,7 @@
 package com.example.pro.entity;
 
 import com.example.pro.exception.TimeRangeInvalidException;
+import com.example.pro.model.TimeRange;
 import com.example.pro.repository.AppointmentRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,7 @@ public class AppointmentTest {
             var appointment = Appointment.builder()
                 .patientId(-1)
                 .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             var exception = assertThrows(Exception.class, () -> appointmentRepository.save(appointment));
             assertInstanceOf(IllegalArgumentException.class, exception.getCause());
@@ -53,8 +53,7 @@ public class AppointmentTest {
             var appointment = Appointment.builder()
                 .patientId(1)
                 .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             assertDoesNotThrow(() -> invokeValidate(appointment));
         }
@@ -63,8 +62,7 @@ public class AppointmentTest {
         void givenNullPatientId_whenValidate_thenThrowsException() {
             var appointment = Appointment.builder()
                 .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
             assertEquals("patientId must be positive", exception.getMessage());
@@ -75,8 +73,7 @@ public class AppointmentTest {
             var appointment = Appointment.builder()
                 .patientId(-1)
                 .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
             assertEquals("patientId must be positive", exception.getMessage());
@@ -86,8 +83,7 @@ public class AppointmentTest {
         void givenNullPractitionerId_whenValidate_thenThrowsException() {
             var appointment = Appointment.builder()
                 .patientId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
             assertEquals("practitionerId must be positive", exception.getMessage());
@@ -98,58 +94,10 @@ public class AppointmentTest {
             var appointment = Appointment.builder()
                 .patientId(1)
                 .practitionerId(-1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
+                .timeRange(new TimeRange(Instant.parse("2021-02-10T09:00:00Z"), Instant.parse("2021-02-10T09:15:00Z")))
                 .build();
             var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
             assertEquals("practitionerId must be positive", exception.getMessage());
-        }
-
-        @Test
-        void givenNullStartDate_whenValidate_thenThrowsException() {
-            var appointment = Appointment.builder()
-                .patientId(1)
-                .practitionerId(1)
-                .endDate(Instant.parse("2021-02-10T09:15:00Z"))
-                .build();
-            var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
-            assertEquals("Dates cannot be null", exception.getMessage());
-        }
-
-        @Test
-        void givenNullEndDate_whenValidate_thenThrowsException() {
-            var appointment = Appointment.builder()
-                .patientId(1)
-                .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .build();
-            var exception = assertThrows(IllegalArgumentException.class, () -> invokeValidate(appointment));
-            assertEquals("Dates cannot be null", exception.getMessage());
-        }
-
-        @Test
-        void givenStartDateAfterEndDate_whenValidate_thenThrowsException() {
-            var appointment = Appointment.builder()
-                .patientId(1)
-                .practitionerId(1)
-                .startDate(Instant.parse("2021-02-10T10:00:00Z"))
-                .endDate(Instant.parse("2021-02-10T09:00:00Z"))
-                .build();
-            var exception = assertThrows(TimeRangeInvalidException.class, () -> invokeValidate(appointment));
-            assertEquals("startDate must be before endDate", exception.getMessage());
-        }
-
-        @Test
-        void givenStartDateEqualsEndDate_whenValidate_thenThrowsException() {
-            var instant = Instant.parse("2021-02-10T09:00:00Z");
-            var appointment = Appointment.builder()
-                .patientId(1)
-                .practitionerId(1)
-                .startDate(instant)
-                .endDate(instant)
-                .build();
-            var exception = assertThrows(TimeRangeInvalidException.class, () -> invokeValidate(appointment));
-            assertEquals("startDate must be before endDate", exception.getMessage());
         }
     }
 }

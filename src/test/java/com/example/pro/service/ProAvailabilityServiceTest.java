@@ -4,6 +4,7 @@ import com.example.pro.EntityFactory;
 import com.example.pro.entity.Availability;
 import com.example.pro.entity.Practitioner;
 import com.example.pro.model.AvailabilityStatus;
+import com.example.pro.model.TimeRange;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -32,7 +33,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertEquals(4, availabilities.size());
 
-        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(a -> a.getTimeRange().startDate()).collect(Collectors.toList());
         ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
@@ -47,10 +48,10 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
         Instant startDate = Instant.parse("2020-02-05T11:00:00Z");
         timeSlotRepository.save(entityFactory.createTimeSlot(practitioner.getId(), startDate, startDate.plus(Duration.ofHours(1))));
 
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate).endDate(startDate.plus(Duration.ofMinutes(15))).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(15))).endDate(startDate.plus(Duration.ofMinutes(30))).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(35))).endDate(startDate.plus(Duration.ofMinutes(45))).build());
-        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).startDate(startDate.plus(Duration.ofMinutes(45))).endDate(startDate.plus(Duration.ofHours(1))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).timeRange(new TimeRange(startDate, startDate.plus(Duration.ofMinutes(15)))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).timeRange(new TimeRange(startDate.plus(Duration.ofMinutes(15)), startDate.plus(Duration.ofMinutes(30)))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).timeRange(new TimeRange(startDate.plus(Duration.ofMinutes(35)), startDate.plus(Duration.ofMinutes(45)))).build());
+        availabilityRepository.save(Availability.builder().practitionerId(practitioner.getId()).timeRange(new TimeRange(startDate.plus(Duration.ofMinutes(45)), startDate.plus(Duration.ofHours(1)))).build());
 
         proAvailabilityService.generateAvailabilities(practitioner.getId());
 
@@ -72,7 +73,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertEquals(3, availabilities.size());
 
-        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(a -> a.getTimeRange().startDate()).collect(Collectors.toList());
         ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
@@ -99,7 +100,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertEquals(2, availabilities.size());
 
-        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(a -> a.getTimeRange().startDate()).collect(Collectors.toList());
         ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(15)));
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(45)));
@@ -150,7 +151,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertEquals(3, availabilities.size());
 
-        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(a -> a.getTimeRange().startDate()).collect(Collectors.toList());
         ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(35)));
@@ -172,7 +173,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertEquals(3, availabilities.size());
 
-        List<Instant> availabilitiesStartDate = availabilities.stream().map(Availability::getStartDate).collect(Collectors.toList());
+        List<Instant> availabilitiesStartDate = availabilities.stream().map(a -> a.getTimeRange().startDate()).collect(Collectors.toList());
         ArrayList<Instant> expectedStartDate = new ArrayList<>();
         expectedStartDate.add(startDate);
         expectedStartDate.add(startDate.plus(Duration.ofMinutes(35)));
@@ -224,7 +225,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(7)
-            .extracting(Availability::getStartDate)
+            .extracting(a -> a.getTimeRange().startDate())
             .containsExactly(
                 startDate,                                                          // 11:00
                 startDate.plus(Duration.ofMinutes(35)),                            // 11:35
@@ -256,7 +257,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertThat(availabilities)
             .hasSize(6)
-            .extracting(Availability::getStartDate)
+            .extracting(a -> a.getTimeRange().startDate())
             .containsExactly(
                 startDate,                                      // 11:00
                 startDate.plus(Duration.ofMinutes(35)),        // 11:35
@@ -287,7 +288,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
         List<Availability> availabilities = proAvailabilityService.generateAvailabilities(practitioner.getId());
 
         assertThat(availabilities).hasSize(2)
-            .extracting(Availability::getStartDate)
+            .extracting(a -> a.getTimeRange().startDate())
             .containsExactly(
                 startDate,                                  // 11:00
                 startDate.plus(Duration.ofMinutes(35))     // 11:35
@@ -314,7 +315,7 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         assertThat(availabilities)
             .hasSize(2)
-            .extracting(Availability::getStartDate)
+            .extracting(a -> a.getTimeRange().startDate())
             .containsExactly(
                 startDate,                                  // 11:00
                 startDate.plus(Duration.ofMinutes(35))     // 11:35
@@ -328,21 +329,18 @@ class ProAvailabilityServiceTest extends IntegrationBaseTest{
 
         Availability free1 = availabilityRepository.save(Availability.builder()
             .practitionerId(practitioner.getId())
-            .startDate(start)
-            .endDate(start.plus(Duration.ofMinutes(15)))
+            .timeRange(new TimeRange(start, start.plus(Duration.ofMinutes(15))))
             .build());
 
         Availability free2 = availabilityRepository.save(Availability.builder()
             .practitionerId(practitioner.getId())
-            .startDate(start.plus(Duration.ofMinutes(15)))
-            .endDate(start.plus(Duration.ofMinutes(30)))
+            .timeRange(new TimeRange(start.plus(Duration.ofMinutes(15)), start.plus(Duration.ofMinutes(30))))
             .status(AvailabilityStatus.FREE)
             .build());
 
         Availability unavailable = availabilityRepository.save(Availability.builder()
             .practitionerId(practitioner.getId())
-            .startDate(start.plus(Duration.ofMinutes(30)))
-            .endDate(start.plus(Duration.ofMinutes(45)))
+            .timeRange(new TimeRange(start.plus(Duration.ofMinutes(30)), start.plus(Duration.ofMinutes(45))))
             .status(AvailabilityStatus.UNAVAILABLE)
             .build());
 

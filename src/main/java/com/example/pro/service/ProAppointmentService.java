@@ -80,12 +80,12 @@ public class ProAppointmentService {
      * Ensures no overlapping booked appointment exists for the same patient
      * within the requested time range.
      *
-     * @param request the appointment request containing patient ID and date range
+     * @param request the appointment request containing patient ID and time range
      * @throws AppointmentOverlapExistedException if an overlapping appointment is found
      */
     private void ensureNoOverlapAppointments(AppointmentRequest request) {
         var overlapping = appointmentRepository.findOverlappingAppointments(
-            request.patientId(), request.startDate(), request.endDate(), AppointmentStatus.BOOKED
+            request.patientId(), request.timeRange().startDate(), request.timeRange().endDate(), AppointmentStatus.BOOKED
         );
         if (!overlapping.isEmpty()) throw new AppointmentOverlapExistedException("Other appointment conflicts with time range");
     }
@@ -108,7 +108,7 @@ public class ProAppointmentService {
 
         // Lock to avoid 2 appointments in the same range and practitioner
         var availability = availabilityRepository.findForUpdate(
-            request.practitionerId(), request.startDate(), request.endDate(), AvailabilityStatus.FREE
+            request.practitionerId(), request.timeRange().startDate(), request.timeRange().endDate(), AvailabilityStatus.FREE
         ).orElseThrow(() -> new AvailabilityNotFoundException("Availability not found"));
 
         ensureNoOverlapAppointments(request);
@@ -119,8 +119,7 @@ public class ProAppointmentService {
         var appointment = Appointment.builder()
             .practitionerId(request.practitionerId())
             .patientId(request.patientId())
-            .startDate(request.startDate())
-            .endDate(request.endDate())
+            .timeRange(request.timeRange())
             .build();
         var bookedAppointment = appointmentRepository.save(appointment);
 
