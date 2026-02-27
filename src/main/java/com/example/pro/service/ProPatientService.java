@@ -13,7 +13,7 @@ import java.util.Optional;
 public class ProPatientService {
     private final PatientRepository patientRepository;
 
-    public Optional<Patient> find(int patientId) {
+    public Optional<Patient> find(String patientId) {
         return patientRepository.findById(patientId);
     }
 

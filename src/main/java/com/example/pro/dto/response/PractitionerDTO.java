@@ -9,7 +9,7 @@ package com.example.pro.dto.response;
  * @param speciality the practitioner's medical speciality
  */
 public record PractitionerDTO(
-    Integer id,
+    String id,
     String firstName,
     String lastName,
     String speciality

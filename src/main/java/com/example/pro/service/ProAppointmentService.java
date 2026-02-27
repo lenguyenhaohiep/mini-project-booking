@@ -7,7 +7,6 @@ import com.example.pro.exception.PatientNotFoundException;
 import com.example.pro.exception.PractitionerNotFoundException;
 import com.example.pro.model.AppointmentRequest;
 import com.example.pro.model.AppointmentStatus;
-import com.example.pro.model.AvailabilityStatus;
 import com.example.pro.repository.AppointmentRepository;
 import com.example.pro.repository.AvailabilityRepository;
 import com.example.pro.repository.PatientRepository;
@@ -15,7 +14,8 @@ import com.example.pro.repository.PractitionerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +28,8 @@ public class ProAppointmentService {
     private final PractitionerRepository practitionerRepository;
     private final PatientRepository patientRepository;
     private final AvailabilityRepository availabilityRepository;
+    private final DistributedLockService distributedLockService;
+    private final PlatformTransactionManager transactionManager;
 
     /**
      * Finds an appointment by its ID.
@@ -35,7 +37,7 @@ public class ProAppointmentService {
      * @param appointmentId the appointment ID
      * @return the appointment optional
      */
-    public Optional<Appointment> find(long appointmentId) {
+    public Optional<Appointment> find(String appointmentId) {
         return appointmentRepository.findById(appointmentId);
     }
 
@@ -54,7 +56,7 @@ public class ProAppointmentService {
      * @param practitionerId the practitioner's ID
      * @return list of appointments for the practitioner
      */
-    public List<Appointment> findByPractitionerId(int practitionerId) {
+    public List<Appointment> findByPractitionerId(String practitionerId) {
         return appointmentRepository.findByPractitionerId(practitionerId);
     }
 
@@ -66,13 +68,11 @@ public class ProAppointmentService {
      * @throws PractitionerNotFoundException if the practitioner does not exist
      * @throws PatientNotFoundException      if the patient does not exist
      */
-    private void validateParticipants(int practitionerId, int patientId) {
+    private void validateParticipants(String practitionerId, String patientId) {
         if (!practitionerRepository.existsById(practitionerId)) {
             throw new PractitionerNotFoundException("Practitioner %s not found".formatted(practitionerId));
         }
-
-        // Lock to avoid 2 appointments in the same range and patient but different practitioner
-        patientRepository.findForUpdateById(patientId).orElseThrow(
+        patientRepository.findById(patientId).orElseThrow(
             () -> new PatientNotFoundException("Patient %s not found".formatted(patientId)));
     }
 
@@ -90,31 +90,31 @@ public class ProAppointmentService {
         if (!overlapping.isEmpty()) throw new AppointmentOverlapExistedException("Other appointment conflicts with time range");
     }
 
+
     /**
-     * Creates a new appointment after validating participants, checking for
-     * overlaps, and securing a free availability slot. Marks the matching
-     * availability as BOOKED on success.
+     * Handles the core appointment creation logic within a transaction.
+     * Validates participants, marks the availability as unavailable, checks for
+     * overlapping appointments, and persists the new appointment.
      *
-     * @param request the appointment request
-     * @return the persisted appointment
+     * @param request the appointment request containing patient, practitioner, and time range
+     * @return the saved appointment
      * @throws PractitionerNotFoundException      if the practitioner does not exist
      * @throws PatientNotFoundException           if the patient does not exist
-     * @throws AppointmentOverlapExistedException if an overlapping appointment exists
-     * @throws AvailabilityNotFoundException      if no matching free availability slot is found
+     * @throws AvailabilityNotFoundException      if no matching availability is found
+     * @throws AppointmentOverlapExistedException if the patient already has a conflicting appointment
      */
-    @Transactional
-    public Appointment createAppointment(AppointmentRequest request) {
+    private Appointment processAppointmentRequest(AppointmentRequest request) {
         validateParticipants(request.practitionerId(), request.patientId());
 
-        // Lock to avoid 2 appointments in the same range and practitioner
-        var availability = availabilityRepository.findForUpdate(
-            request.practitionerId(), request.startDate(), request.endDate(), AvailabilityStatus.FREE
-        ).orElseThrow(() -> new AvailabilityNotFoundException("Availability not found"));
+        // lock availability
+        var availability = availabilityRepository.findAndMarkAsUnavailableWithLock(
+            request.practitionerId(), request.startDate(), request.endDate()
+        );
+        if (availability == null) {
+            throw new AvailabilityNotFoundException("Availability not found");
+        }
 
         ensureNoOverlapAppointments(request);
-
-        availability.markAsUnavailable();
-        availabilityRepository.save(availability);
 
         var appointment = Appointment.builder()
             .practitionerId(request.practitionerId())
@@ -123,8 +123,26 @@ public class ProAppointmentService {
             .endDate(request.endDate())
             .build();
         var bookedAppointment = appointmentRepository.save(appointment);
-
         log.info("Created appointment successfully {}", request);
         return bookedAppointment;
+    }
+
+    /**
+     * Creates a new appointment.
+     * <p>
+     * A distributed lock keyed on the patient is acquired before the transaction starts
+     * and released after it commits, serialising concurrent booking attempts for the
+     * same patient across all pods.
+     */
+    public Appointment createAppointment(AppointmentRequest request) {
+        // lock patient
+        String lockResource = "patient:" + request.patientId();
+        distributedLockService.acquire(lockResource);
+        // lock and appointment process have to be in the different transaction
+        try {
+            return new TransactionTemplate(transactionManager).execute((status) -> processAppointmentRequest(request));
+        } finally {
+            distributedLockService.release(lockResource);
+        }
     }
 }

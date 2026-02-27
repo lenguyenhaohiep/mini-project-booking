@@ -12,7 +12,7 @@ import java.util.List;
 public class ProTimeSlotService {
     private final TimeSlotRepository timeSlotRepository;
 
-    public List<TimeSlot> findByPractitionerId(int practitionerId) {
+    public List<TimeSlot> findByPractitionerId(String practitionerId) {
         return timeSlotRepository.findByPractitionerId(practitionerId);
     }
 }

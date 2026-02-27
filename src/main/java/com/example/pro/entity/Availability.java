@@ -3,12 +3,13 @@ package com.example.pro.entity;
 import com.example.pro.exception.InvalidStateChangeException;
 import com.example.pro.model.AvailabilityStatus;
 import com.example.pro.model.TimeRange;
-import com.example.pro.utils.Validator;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
 
@@ -16,24 +17,21 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "availability")
+@Document(collection = "availability")
 public class Availability {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private String id;
 
-    @Column(name = "practitioner_id")
-    private Integer practitionerId;
+    @Field("practitioner_id")
+    private String practitionerId;
 
-    @Column(name = "start_date")
+    @Field("start_date")
     private Instant startDate;
 
-    @Column(name = "end_date")
+    @Field("end_date")
     private Instant endDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Field("status")
     @Builder.Default
     private AvailabilityStatus status = AvailabilityStatus.FREE;
 
@@ -46,12 +44,5 @@ public class Availability {
 
     public TimeRange getTimeRange() {
         return new TimeRange(startDate, endDate);
-    }
-
-    @PrePersist
-    @PreUpdate
-    private void validate() {
-        Validator.validateValidId(practitionerId, "practitionerId");
-        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

@@ -12,9 +12,9 @@ import java.time.Instant;
  * @param endDate        the appointment end date and time
  */
 public record AppointmentDTO(
-    Long id,
-    Integer patientId,
-    Integer practitionerId,
+    String id,
+    String patientId,
+    String practitionerId,
     Instant startDate,
     Instant endDate
 ) {

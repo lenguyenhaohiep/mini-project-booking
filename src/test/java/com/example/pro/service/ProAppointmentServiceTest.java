@@ -77,7 +77,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
 
     @Test
     void givenInvalidPractitionerId_whenCreateAppointment_thenThrowsPractitionerNotFound() {
-        var request = new AppointmentRequest(1, 999999, startDate, startDate.plus(Duration.ofMinutes(15)));
+        var request = new AppointmentRequest("some-patient-id", "nonexistent-practitioner-id", startDate, startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
             .isInstanceOf(PractitionerNotFoundException.class);
@@ -87,7 +87,7 @@ class ProAppointmentServiceTest extends IntegrationBaseTest {
     void givenInvalidPatientId_whenCreateAppointment_thenThrowsPatientNotFound() {
         Practitioner practitioner = practitionerRepository.save(entityFactory.createPractitioner());
 
-        var request = new AppointmentRequest(999999, practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
+        var request = new AppointmentRequest("nonexistent-patient-id", practitioner.getId(), startDate, startDate.plus(Duration.ofMinutes(15)));
 
         assertThatThrownBy(() -> proAppointmentService.createAppointment(request))
             .isInstanceOf(PatientNotFoundException.class);

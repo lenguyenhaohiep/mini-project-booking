@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 class ProAvailabilityServiceTest extends IntegrationBaseTest{
     private final  EntityFactory entityFactory = new EntityFactory();
-    private  final static Integer patient_id=657679;
+    private final static String patient_id = "patient-657679";
 
     @Test
     void generateAvailabilities() {

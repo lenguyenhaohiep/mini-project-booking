@@ -13,7 +13,7 @@ import java.util.Optional;
 public class ProPractitionerService {
     private final PractitionerRepository practitionerRepository;
 
-    public Optional<Practitioner> find(int practitionerId) {
+    public Optional<Practitioner> find(String practitionerId) {
         return practitionerRepository.findById(practitionerId);
     }
 

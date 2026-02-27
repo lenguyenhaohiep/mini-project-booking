@@ -2,30 +2,32 @@ package com.example.pro.repository;
 
 import com.example.pro.entity.Appointment;
 import com.example.pro.model.AppointmentStatus;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
 
 @Repository
-public interface AppointmentRepository extends CrudRepository<Appointment, Long> {
+public interface AppointmentRepository extends MongoRepository<Appointment, String> {
     List<Appointment> findAll();
 
-    List<Appointment> findByPatientId(int patientId);
+    List<Appointment> findByPatientId(String patientId);
 
-    List<Appointment> findByPractitionerId(int practitionerId);
+    List<Appointment> findByPractitionerId(String practitionerId);
 
-    List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(int practitionerId, Instant start,
+    @Query("{ 'practitioner_id': ?0, 'start_date': { $gte: ?1, $lte: ?2 }, 'status': ?3 }")
+    List<Appointment> findByPractitionerIdAndStartDateBetweenAndStatus(String practitionerId, Instant start,
                                                                        Instant end,
                                                                        AppointmentStatus status);
 
-    List<Appointment> findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(int patientId,
+    List<Appointment> findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(String patientId,
                                                                                         Instant start,
                                                                                         Instant end,
                                                                                         AppointmentStatus status);
 
-    default List<Appointment> findOverlappingAppointments(int patientId, Instant start, Instant end,
+    default List<Appointment> findOverlappingAppointments(String patientId, Instant start, Instant end,
                                                   AppointmentStatus status) {
         return findByPatientIdAndEndDateGreaterThanAndStartDateLessThanAndStatus(
             patientId, start, end, status
