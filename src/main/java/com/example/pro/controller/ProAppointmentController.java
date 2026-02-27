@@ -6,7 +6,6 @@ import com.example.pro.dto.response.AppointmentDTO;
 import com.example.pro.service.ProAppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,7 +24,7 @@ public class ProAppointmentController {
 
     @Operation(description = "Get appointments by practitionerId")
     @GetMapping("/{practitionerId}")
-    public List<AppointmentDTO> getAppointmentsByPractitioner(@Positive @PathVariable final Integer practitionerId) {
+    public List<AppointmentDTO> getAppointmentsByPractitioner(@PathVariable final String practitionerId) {
         return proAppointmentService.findByPractitionerId(practitionerId)
             .stream().map(AppointmentMapper.INSTANCE::toDTO).toList();
     }

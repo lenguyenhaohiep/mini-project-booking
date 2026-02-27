@@ -57,8 +57,8 @@ class ProAppointmentControllerTest {
 
         String json = """
             {
-                "patientId": %d,
-                "practitionerId": %d,
+                "patientId": "%s",
+                "practitionerId": "%s",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -78,7 +78,7 @@ class ProAppointmentControllerTest {
     void givenNullPatientId_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "practitionerId": 1,
+                "practitionerId": "some-practitioner-id",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -94,7 +94,7 @@ class ProAppointmentControllerTest {
     void givenInvalidRange_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "practitionerId": 1,
+                "practitionerId": "some-practitioner-id",
                 "startDate": "2021-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -110,7 +110,7 @@ class ProAppointmentControllerTest {
     void givenNullPractitionerId_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "patientId": 1,
+                "patientId": "some-patient-id",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -123,11 +123,11 @@ class ProAppointmentControllerTest {
     }
 
     @Test
-    void givenNegativePatientId_whenCreateAppointment_thenReturns400() throws Exception {
+    void givenBlankPatientId_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "patientId": -1,
-                "practitionerId": 1,
+                "patientId": "",
+                "practitionerId": "some-practitioner-id",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -143,8 +143,8 @@ class ProAppointmentControllerTest {
     void givenNullStartDate_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "patientId": 1,
-                "practitionerId": 1,
+                "patientId": "some-patient-id",
+                "practitionerId": "some-practitioner-id",
                 "endDate": "2020-02-05T11:15:00Z"
             }
             """;
@@ -159,8 +159,8 @@ class ProAppointmentControllerTest {
     void givenInvalidDateFormat_whenCreateAppointment_thenReturns400() throws Exception {
         String json = """
             {
-                "patientId": 1,
-                "practitionerId": 1,
+                "patientId": "some-patient-id",
+                "practitionerId": "some-practitioner-id",
                 "startDate": "05/02/2020 11:00",
                 "endDate": "05/02/2020 11:15"
             }
@@ -178,8 +178,8 @@ class ProAppointmentControllerTest {
 
         String json = """
             {
-                "patientId": %d,
-                "practitionerId": 999999,
+                "patientId": "%s",
+                "practitionerId": "nonexistent-practitioner-id",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -198,8 +198,8 @@ class ProAppointmentControllerTest {
 
         String json = """
             {
-                "patientId": %d,
-                "practitionerId": %d,
+                "patientId": "%s",
+                "practitionerId": "%s",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -242,8 +242,8 @@ class ProAppointmentControllerTest {
         // try to book same patient, same time range, different practitioner
         String json = """
             {
-                "patientId": %d,
-                "practitionerId": %d,
+                "patientId": "%s",
+                "practitionerId": "%s",
                 "startDate": "2020-02-05T11:00:00Z",
                 "endDate": "2020-02-05T11:15:00Z"
             }
@@ -278,8 +278,8 @@ class ProAppointmentControllerTest {
         // try to book same patient, overlapping time range, different practitioner
         String json = """
             {
-                "patientId": %d,
-                "practitionerId": %d,
+                "patientId": "%s",
+                "practitionerId": "%s",
                 "startDate": "2020-02-05T11:10:00Z",
                 "endDate": "2020-02-05T11:25:00Z"
             }

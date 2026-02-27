@@ -11,8 +11,8 @@ import java.time.Instant;
  * @param endDate        the availability slot end date and time
  */
 public record AvailabilityDTO(
-    Long id,
-    Integer practitionerId,
+    String id,
+    String practitionerId,
     Instant startDate,
     Instant endDate
 ) {

@@ -22,7 +22,7 @@ public class ProAvailabilityController {
 
     @Operation(description = "Get availabilities by practitionerId")
     @GetMapping
-    public List<AvailabilityDTO> getAvailabilities(@Positive @RequestParam final Integer practitionerId) {
+    public List<AvailabilityDTO> getAvailabilities(@RequestParam final String practitionerId) {
         return proAvailabilityService.findFreeAvailabilitiesByPractitionerId(practitionerId)
             .stream().map(AvailabilityMapper.INSTANCE::toDTO).toList();
     }

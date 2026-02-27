@@ -1,7 +1,7 @@
 package com.example.pro.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import java.time.Instant;
 
@@ -14,11 +14,11 @@ import java.time.Instant;
  * @param endDate        the appointment end date and time
  */
 public record AppointmentRequestDTO(
-    @NotNull @Positive
-    Integer patientId,
+    @NotBlank
+    String patientId,
 
-    @NotNull @Positive
-    Integer practitionerId,
+    @NotBlank
+    String practitionerId,
 
     @NotNull
     Instant startDate,

@@ -11,7 +11,7 @@ import java.time.LocalDate;
  * @param birthDate the patient's date of birth
  */
 public record PatientDTO (
-    Integer id,
+    String id,
     String firstName,
     String lastName,
     LocalDate birthDate) {

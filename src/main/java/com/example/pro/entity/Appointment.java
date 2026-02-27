@@ -2,12 +2,13 @@ package com.example.pro.entity;
 
 import com.example.pro.model.AppointmentStatus;
 import com.example.pro.model.TimeRange;
-import com.example.pro.utils.Validator;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
 
@@ -15,39 +16,28 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "appointment")
+@Document(collection = "appointment")
 public class Appointment {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private String id;
 
-    @Column(name = "patient_id")
-    private Integer patientId;
+    @Field("patient_id")
+    private String patientId;
 
-    @Column(name = "practitioner_id")
-    private Integer practitionerId;
+    @Field("practitioner_id")
+    private String practitionerId;
 
-    @Column(name = "start_date")
+    @Field("start_date")
     private Instant startDate;
 
-    @Column(name = "end_date")
+    @Field("end_date")
     private Instant endDate;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
+    @Field("status")
     @Builder.Default
     private AppointmentStatus status = AppointmentStatus.BOOKED;
 
     public TimeRange getTimeRange() {
         return new TimeRange(startDate, endDate);
-    }
-
-    @PrePersist
-    @PreUpdate
-    private void validate() {
-        Validator.validateValidId(patientId, "patientId");
-        Validator.validateValidId(practitionerId, "practitionerId");
-        Validator.validateValidRange(startDate, endDate, "startDate", "endDate");
     }
 }

@@ -19,7 +19,7 @@ public class EntityFactory {
                 .build();
     }
 
-    public TimeSlot createTimeSlot(Integer practitionerId, Instant startDate, Instant endDate) {
+    public TimeSlot createTimeSlot(String practitionerId, Instant startDate, Instant endDate) {
         return TimeSlot.builder()
                 .practitionerId(practitionerId)
                 .startDate(startDate)
@@ -27,7 +27,7 @@ public class EntityFactory {
                 .build();
     }
 
-    public Appointment createAppointment(Integer practitionerId, Integer patientId, Instant start, Instant end) {
+    public Appointment createAppointment(String practitionerId, String patientId, Instant start, Instant end) {
         return Appointment.builder()
                 .practitionerId(practitionerId)
                 .patientId(patientId)
@@ -36,7 +36,7 @@ public class EntityFactory {
                 .build();
     }
 
-    public Availability createAvailability(Integer practitionerId, Instant start, Instant end) {
+    public Availability createAvailability(String practitionerId, Instant start, Instant end) {
         return Availability.builder()
             .practitionerId(practitionerId)
             .startDate(start)
